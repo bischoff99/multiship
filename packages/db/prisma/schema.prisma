@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id         String   @id @default(cuid())
+  sku        String   @unique
+  name       String
+  stock      Int      @default(0)
+  orderItems OrderItem[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sku])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  status    String   @default("pending")
+  total     Int      @default(0) // cents
+  items     OrderItem[]
+  shipments Shipment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id            String         @id @default(cuid())
+  orderId       String
+  productId     String
+  qty           Int
+  price         Int            // cents
+  order         Order          @relation(fields: [orderId], references: [id])
+  product       Product        @relation(fields: [productId], references: [id])
+  shipmentItems ShipmentItem[]
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([orderId, productId])
+}
+
+model Shipment {
+  id                 String @id @default(cuid())
+  orderId            String
+  provider           String
+  providerShipmentId String?
+  trackingCode       String?
+  labelUrl           String?
+  status             String @default("created")
+  order              Order  @relation(fields: [orderId], references: [id])
+  items              ShipmentItem[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([provider])
+  @@index([status])
+  @@index([trackingCode])
+  @@index([providerShipmentId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([status, createdAt])
+  @@index([provider, status])
+}
+
+model ShipmentItem {
+  id          String    @id @default(cuid())
+  shipmentId  String
+  orderItemId String
+  qty         Int
+  shipment    Shipment  @relation(fields: [shipmentId], references: [id])
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+
+  @@index([shipmentId])
+  @@index([orderItemId])
+  @@index([shipmentId, orderItemId])
+}

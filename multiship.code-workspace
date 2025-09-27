@@ -1,0 +1,256 @@
+{
+  "folders": [
+    {
+      "name": "📦 Multiship Root",
+      "path": "."
+    },
+    {
+      "name": "🚀 API Server",
+      "path": "./apps/api"
+    },
+    {
+      "name": "🌐 Web App",
+      "path": "./apps/web"
+    },
+    {
+      "name": "📊 Database",
+      "path": "./packages/db"
+    },
+    {
+      "name": "🔌 Providers",
+      "path": "./packages/providers"
+    }
+  ],
+  "settings": {
+    // ===== WORKSPACE-SPECIFIC SETTINGS =====
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/coverage": true,
+      "**/.nyc_output": true,
+      "**/pnpm-lock.yaml": true
+    },
+    
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/coverage": true,
+      "**/.nyc_output": true,
+      "**/pnpm-lock.yaml": true,
+      "**/.git": true
+    },
+    
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/dist/**": true,
+      "**/build/**": true,
+      "**/coverage/**": true,
+      "**/.git/**": true
+    },
+    
+    // ===== MONOREPO CONFIGURATION =====
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "typescript.suggest.includeCompletionsForModuleExports": true,
+    "typescript.suggest.includeCompletionsForImportStatements": true,
+    "typescript.suggest.includeCompletionsWithSnippetText": true,
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    
+    // ===== ESLINT MONOREPO CONFIGURATION =====
+    "eslint.workingDirectories": [
+      "apps/api",
+      "apps/web", 
+      "packages/providers",
+      "packages/db"
+    ],
+    "eslint.validate": ["typescript", "javascript", "typescriptreact", "javascriptreact"],
+    
+    // ===== JEST MONOREPO CONFIGURATION =====
+    "jest.jestCommandLine": "npm test --",
+    "jest.autoRun": "off",
+    "jest.showCoverageOnLoad": false,
+    "jest.autoRevealOutput": "on-exec-error",
+    
+    // ===== PRISMA CONFIGURATION =====
+    "prisma.schemaPath": "packages/db/prisma/schema.prisma",
+    "prisma.clientPath": "packages/db/node_modules/@prisma/client",
+    
+    // ===== DOCKER CONFIGURATION =====
+    "docker.composeCommand": "docker-compose",
+    "docker.dockerComposeFile": "docker-compose.yml",
+    
+    // ===== WORKSPACE-SPECIFIC FORMATTING =====
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    
+    // ===== TERMINAL CONFIGURATION =====
+    "terminal.integrated.cwd": "${workspaceFolder}",
+    "terminal.integrated.defaultProfile.linux": "bash",
+    
+    // ===== EXPLORER CONFIGURATION =====
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+      "package.json": "package-lock.json,pnpm-lock.yaml,yarn.lock,.npmrc",
+      "docker-compose.yml": "docker-compose.*.yml,.dockerignore",
+      "tsconfig.json": "tsconfig.*.json",
+      "jest.config.js": "jest.config.*.js",
+      "README.md": "*.md,CHANGELOG*,LICENSE*",
+      ".env": ".env.*",
+      "schema.prisma": "migrations/**"
+    }
+  },
+  
+  "extensions": {
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode", 
+      "ms-vscode.vscode-typescript-next",
+      "prisma.prisma",
+      "ms-azuretools.vscode-docker",
+      "jest.jest",
+      "christian-kohler.path-intellisense",
+      "mhutchie.git-graph",
+      "eamodio.gitlens",
+      "github.vscode-pull-request-github"
+    ],
+    "unwantedRecommendations": [
+      "ms-vscode.vscode-typescript"
+    ]
+  },
+  
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "🚀 Start All Services",
+        "type": "shell",
+        "command": "docker-compose up -d && pnpm install && pnpm build",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "🧪 Run All Tests",
+        "type": "shell", 
+        "command": "pnpm test",
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "🔧 Generate Prisma Client",
+        "type": "shell",
+        "command": "cd packages/db && pnpm prisma generate",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "🗄️ Push Database Schema",
+        "type": "shell",
+        "command": "cd packages/db && pnpm prisma db push",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "🏗️ Build All Packages",
+        "type": "shell",
+        "command": "pnpm build",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "🧹 Clean All",
+        "type": "shell",
+        "command": "pnpm clean && docker-compose down -v",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      }
+    ]
+  },
+  
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "🚀 Debug API Server",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/apps/api/dist/server.js",
+        "cwd": "${workspaceFolder}/apps/api",
+        "env": {
+          "NODE_ENV": "development"
+        },
+        "envFile": "${workspaceFolder}/.env",
+        "console": "integratedTerminal",
+        "restart": true,
+        "runtimeArgs": ["--inspect"],
+        "skipFiles": ["<node_internals>/**"],
+        "preLaunchTask": "🏗️ Build All Packages"
+      },
+      {
+        "name": "🧪 Debug Jest Tests",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/packages/providers/node_modules/.bin/jest",
+        "cwd": "${workspaceFolder}/packages/providers",
+        "args": ["--runInBand", "--no-cache"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "env": {
+          "NODE_ENV": "test"
+        },
+        "envFile": "${workspaceFolder}/.env"
+      },
+      {
+        "name": "🐳 Docker Compose Up",
+        "type": "node",
+        "request": "launch",
+        "program": "docker-compose",
+        "args": ["up", "-d"],
+        "cwd": "${workspaceFolder}",
+        "console": "integratedTerminal"
+      }
+    ]
+  }
+}
