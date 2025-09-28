@@ -1,0 +1,89 @@
+version: 2
+updates:
+  # Enable version updates for npm packages
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    assignees:
+      - "multiship/devops-team"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Enable version updates for API package
+  - package-ecosystem: "npm"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    assignees:
+      - "multiship/backend-team"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Enable version updates for web package
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    
+    assignees:
+      - "multiship/frontend-team"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Enable version updates for database package
+  - package-ecosystem: "npm"
+    directory: "/packages/db"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    
+    assignees:
+      - "multiship/backend-team"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Enable version updates for providers package
+  - package-ecosystem: "npm"
+    directory: "/packages/providers"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    
+    assignees:
+      - "multiship/backend-team"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Enable version updates for Docker images
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    
+    assignees:
+      - "multiship/devops-team"
+    commit-message:
+      prefix: "chore"
+      include: "scope"

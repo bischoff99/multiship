@@ -1,0 +1,276 @@
+name: ⚡ Performance Issue
+description: Report performance problems, bottlenecks, or optimization opportunities
+title: "[Performance]: "
+labels: ["performance", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Performance Issue
+
+        Help us optimize the multiship project's performance! Please provide detailed information about the performance issue you're experiencing.
+
+  - type: textarea
+    id: performance-description
+    attributes:
+      label: Performance Issue Description
+      description: |
+        Describe the performance problem you're experiencing in detail.
+      placeholder: |
+        The shipment creation API endpoint takes over 5 seconds to respond when multiple providers are involved...
+      value: |
+        **Issue:** [Describe the performance problem]
+
+        **Impact:** [How does this affect users or the system]
+
+        **Current metrics:** [What performance numbers are you seeing]
+    validations:
+      required: true
+
+  - type: dropdown
+    id: performance-area
+    attributes:
+      label: Performance Area
+      description: Which area of the application is experiencing performance issues?
+      options:
+        - API response times
+        - Database queries
+        - Cache performance
+        - Provider API calls
+        - Circuit breaker behavior
+        - Memory usage
+        - CPU utilization
+        - Network latency
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-providers
+    attributes:
+      label: Affected Providers
+      description: Which shipping providers are affected by this performance issue?
+      options:
+        - EasyPost
+        - Shippo
+        - Veeqo
+        - All providers
+        - Provider-agnostic
+        - Not applicable
+    validations:
+      required: true
+
+  - type: input
+    id: endpoint-operation
+    attributes:
+      label: Endpoint/Operation (if applicable)
+      description: |
+        Which API endpoint or operation is experiencing performance issues?
+      placeholder: POST /api/shipments, quote() method, healthCheck()
+    validations:
+      required: false
+
+  - type: textarea
+    id: current-metrics
+    attributes:
+      label: Current Performance Metrics
+      description: |
+        Please provide specific performance metrics you're observing.
+      placeholder: |
+        **Response Times:**
+        - Average: 3.2 seconds
+        - P95: 8.1 seconds
+        - P99: 15.3 seconds
+
+        **Throughput:**
+        - Requests per second: 12.5
+        - Concurrent users: 50
+
+        **Resource Usage:**
+        - CPU: 85%
+        - Memory: 4.2GB / 8GB
+        - Database connections: 45 / 100
+      value: |
+        **Response Times:**
+        [Include average, percentiles]
+
+        **Throughput:**
+        [Requests per second, concurrent users]
+
+        **Resource Usage:**
+        [CPU, memory, database connections]
+    validations:
+      required: true
+
+  - type: textarea
+    id: performance-expectations
+    attributes:
+      label: Performance Expectations
+      description: |
+        What performance targets should this meet? Include any SLAs, benchmarks, or user expectations.
+      placeholder: |
+        **Target Metrics:**
+        - Response time: < 1 second for single provider
+        - Response time: < 3 seconds for multiple providers
+        - Throughput: > 100 requests/second
+        - Error rate: < 1%
+
+        **Comparison:**
+        - Previously achieved: 0.8 seconds average
+        - Industry standards: Similar APIs respond in ~500ms
+    validations:
+      required: true
+
+  - type: textarea
+    id: load-testing-results
+    attributes:
+      label: Load Testing Results
+      description: |
+        If you've conducted load testing, please share the results and methodology.
+      placeholder: |
+        **Test Setup:**
+        - Tool used: Artillery.io
+        - Test duration: 10 minutes
+        - Concurrent users: 10, 50, 100, 200
+        - Test data: 1000 shipments across 3 providers
+
+        **Results:**
+        - At 50 concurrent: 2.1s average, 95% success
+        - At 100 concurrent: 5.8s average, 87% success
+        - At 200 concurrent: 12.3s average, 45% success
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: infrastructure-details
+    attributes:
+      label: Infrastructure Details
+      description: |
+        Please provide details about your infrastructure and deployment environment.
+      placeholder: |
+        **Environment:**
+        - Production/Staging/Development
+        - Containerized: Yes/No
+        - Cloud provider: AWS/GCP/Azure/Other
+
+        **Resources:**
+        - Server specs: 8 CPU, 16GB RAM
+        - Database: PostgreSQL 15, 4 vCPU, 16GB RAM
+        - Redis: 2 vCPU, 8GB RAM
+        - Load balancer: NGINX/ALB/Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: circuit-breaker-behavior
+    attributes:
+      label: Circuit Breaker Behavior
+      description: |
+        If this involves circuit breaker behavior, please describe what's happening with error rates and recovery.
+      placeholder: |
+        **Circuit Breaker Status:**
+        - Current state: Open/Closed/Half-Open
+        - Error rate threshold: 5%
+        - Current error rate: 15%
+        - Time to recovery: 30 seconds
+
+        **Recent Behavior:**
+        - When did it open? 14:30 UTC
+        - How many requests failed? 150 out of 200
+        - Recovery attempts: 3
+    validations:
+      required: false
+
+  - type: textarea
+    id: cache-performance
+    attributes:
+      label: Cache Performance Details
+      description: |
+        If this involves cache performance, please provide cache hit rates, memory usage, and eviction patterns.
+      placeholder: |
+        **Cache Metrics:**
+        - Hit rate: 78%
+        - Miss rate: 22%
+        - Memory usage: 1.2GB / 2GB
+        - Evictions: 1500 per minute
+
+        **Cache Configuration:**
+        - TTL: 300 seconds for quotes, 3600 seconds for rates
+        - Max memory: 2GB
+        - Eviction policy: LRU
+    validations:
+      required: false
+
+  - type: textarea
+    id: profiling-data
+    attributes:
+      label: Profiling Data
+      description: |
+        If you have profiling data (CPU, memory, database query performance), please share the most relevant findings.
+      placeholder: |
+        **CPU Profiling:**
+        - Hotspot: EasyPostAdapter.quote() - 45% CPU time
+        - Second: Redis cache lookup - 23% CPU time
+
+        **Database Queries:**
+        - Slow query: SELECT * FROM shipments WHERE created_at > ? - 2.1s average
+        - Query count: 150 queries per request
+
+        **Memory:**
+        - Largest allocations: Provider response objects - 45MB
+        - GC pauses: 150ms average
+    validations:
+      required: false
+
+  - type: textarea
+    id: optimization-attempts
+    attributes:
+      label: Optimization Attempts
+      description: |
+        What optimization attempts have you already made?
+      placeholder: |
+        - Added database indexes on frequently queried columns
+        - Implemented Redis caching for provider responses
+        - Added connection pooling for database
+        - Optimized Docker container resource limits
+        - Implemented request batching
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Any additional information that would help us understand and address this performance issue.
+        Include monitoring dashboards, comparison with previous versions, or related changes.
+      placeholder: |
+        - Performance was acceptable before recent provider API changes
+        - Monitoring dashboard: [link if available]
+        - Related changes: Added new provider integration last week
+        - Traffic patterns: Peak usage during business hours (9-5 EST)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: |
+        Please ensure you've completed these steps before submitting the performance issue.
+      options:
+        - label: I have provided specific performance metrics
+          required: true
+        - label: I have described current vs expected performance
+          required: true
+        - label: I have specified which providers/areas are affected
+          required: true
+        - label: I have included infrastructure and environment details
+          required: false
+        - label: I have provided load testing results if available
+          required: false
+        - label: I have included profiling data if available
+          required: false
+        - label: I am willing to help gather additional performance data
+          required: true

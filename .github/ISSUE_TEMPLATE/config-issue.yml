@@ -1,0 +1,216 @@
+name: ⚙️ Configuration Issue
+description: Report issues with environment setup, Docker Compose, or provider configuration
+title: "[Config]: "
+labels: ["configuration", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Configuration Issue
+
+        Help us troubleshoot configuration and setup issues with the multiship project. Please provide detailed information about your environment and the problem you're experiencing.
+
+  - type: dropdown
+    id: config-type
+    attributes:
+      label: Configuration Type
+      description: What type of configuration issue are you experiencing?
+      options:
+        - Environment setup (.env files)
+        - Docker Compose configuration
+        - Provider configuration (API keys, endpoints)
+        - Database connection issues
+        - Redis cache configuration
+        - Package/dependency issues
+        - Build configuration
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: |
+        Describe the configuration problem you're experiencing in detail.
+      placeholder: |
+        I'm unable to start the application because Docker Compose fails with the following error...
+      value: |
+        **Problem:** [Describe what's not working]
+
+        **Expected behavior:** [What should happen instead]
+
+        **Error messages:** [Include any error messages you're seeing]
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment-details
+    attributes:
+      label: Environment Details
+      description: |
+        Please provide information about your environment setup.
+      placeholder: |
+        - Operating System: Ubuntu 22.04 LTS
+        - Docker version: 24.0.7
+        - Docker Compose version: v2.23.3
+        - Node.js version: 18.19.0
+        - Package manager: PNPM 8.15.0
+      value: |
+        **Operating System:**
+        [OS name and version]
+
+        **Docker & Compose:**
+        [Versions if applicable]
+
+        **Node.js:**
+        [Node version and package manager]
+
+        **Project structure:**
+        [Monorepo setup, package versions]
+    validations:
+      required: true
+
+  - type: textarea
+    id: docker-compose-config
+    attributes:
+      label: Docker Compose Configuration
+      description: |
+        If this is a Docker Compose issue, please share your docker-compose.yml configuration (without sensitive values).
+      placeholder: |
+        ```yaml
+        version: '3.8'
+        services:
+          db:
+            image: postgres:15
+            ports:
+              - "5432:5432"
+          redis:
+            image: redis:7.0
+            ports:
+              - "6379:6379"
+        ```
+      render: yaml
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment-variables
+    attributes:
+      label: Environment Variables
+      description: |
+        List the environment variables you're using (without sensitive values like API keys).
+      placeholder: |
+        ```bash
+        NODE_ENV=development
+        DATABASE_URL=postgresql://user:pass@localhost:5432/multiship
+        REDIS_URL=redis://localhost:6379
+        EASYPOST_API_KEY=[configured]
+        SHIPPO_API_KEY=[configured]
+        VEEQO_API_KEY=[configured]
+        ```
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: provider-config-issues
+    attributes:
+      label: Provider Configuration Issues
+      description: |
+        If this involves shipping provider configuration, please specify which providers and what configuration problems you're having.
+      placeholder: |
+        **Provider:** EasyPost
+        **Issue:** API key validation failing
+        **Configuration attempted:**
+        ```javascript
+        // easypost config
+        {
+          apiKey: process.env.EASYPOST_API_KEY,
+          timeout: 30000
+        }
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: setup-steps
+    attributes:
+      label: Setup Steps Attempted
+      description: |
+        What steps have you already tried to resolve this configuration issue?
+      placeholder: |
+        1. Cloned the repository
+        2. Copied .env.example to .env
+        3. Configured environment variables
+        4. Ran `docker-compose up`
+        5. Error occurred: [specific error message]
+        6. Tried: [troubleshooting steps attempted]
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-logs
+    attributes:
+      label: Error Logs
+      description: |
+        Please include any relevant error logs, stack traces, or console output.
+      placeholder: |
+        ```
+        $ docker-compose up
+        ERROR: Service 'db' failed to start: driver failed programming external connectivity on endpoint multiship_db
+        ```
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: troubleshooting-attempted
+    attributes:
+      label: Troubleshooting Steps Already Tried
+      description: |
+        What troubleshooting steps have you already attempted?
+      placeholder: |
+        - Checked Docker daemon is running
+        - Verified ports 5432 and 6379 are available
+        - Tried different database credentials
+        - Cleared Docker cache with `docker system prune`
+        - Checked firewall settings
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Any additional information that might help us understand your configuration issue.
+        This could include network setup, firewall rules, container orchestration, or other environmental factors.
+      placeholder: |
+        - Running in a containerized environment (Kubernetes, Docker Swarm)
+        - Behind corporate firewall or proxy
+        - Using VPN or remote development setup
+        - Specific hosting provider (AWS, GCP, Azure)
+        - Development vs production environment differences
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: |
+        Please ensure you've completed these steps before submitting the configuration issue.
+      options:
+        - label: I have described the configuration problem clearly
+          required: true
+        - label: I have provided environment details (OS, Docker, Node versions)
+          required: true
+        - label: I have included error messages and logs
+          required: false
+        - label: I have listed the troubleshooting steps I've already tried
+          required: true
+        - label: I have specified which configuration type is affected
+          required: true
+        - label: I am willing to provide additional configuration details if needed
+          required: true

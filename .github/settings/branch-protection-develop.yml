@@ -1,0 +1,65 @@
+# Branch Protection Rules for Develop Branch
+# Balanced protection for active development
+name: Develop Branch Protection
+description: Balanced protection rules for the develop branch to maintain quality while allowing efficient development
+branch: develop
+enforcement: active
+
+# Required status checks
+required_status_checks:
+  # Enforce strict status checks
+  strict: true
+
+  # List of required status checks from CI/CD workflows
+  contexts:
+    # Core CI checks
+    - "ci"
+
+    # Security scanning checks
+    - "codeql-analysis"
+    - "dependency-scan"
+    - "secrets-detection"
+    - "container-scan"
+    - "license-check"
+    - "security-summary"
+
+# Pull request requirements
+required_pull_request_reviews:
+  # Require at least 1 approving review
+  required_approving_review_count: 1
+
+  # Dismiss stale reviews when new commits are pushed
+  dismiss_stale_reviews: true
+
+  # Require review from code owners (based on CODEOWNERS file)
+  require_code_owner_reviews: false
+
+  # Dismissal restrictions - only specific teams can dismiss reviews
+  dismissal_restrictions:
+    teams:
+      - "@multiship/maintainers"
+      - "@multiship/devops-team"
+
+# Push restrictions
+restrictions:
+  # Allow direct pushes from development teams for maintenance
+  teams:
+    - "@multiship/maintainers"
+    - "@multiship/devops-team"
+    - "@multiship/backend-team"
+    - "@multiship/frontend-team"
+  # Include administrators in push restrictions
+  enforces_admins: true
+
+# Additional protection settings
+required_conversation_resolution: true
+allow_force_pushes: false
+allow_deletions: false
+
+# Linear history enforcement (less strict for development)
+required_linear_history: false
+
+# Branch protection exemptions
+exemptions:
+  # No exemptions for security patches
+  security_advisories: false

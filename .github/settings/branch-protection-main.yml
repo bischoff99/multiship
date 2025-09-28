@@ -1,0 +1,75 @@
+# Branch Protection Rules for Main Branch
+# Maximum protection for production releases
+name: Main Branch Protection
+description: Comprehensive protection rules for the main branch to ensure production readiness
+branch: main
+enforcement: active
+
+# Required status checks
+required_status_checks:
+  # Enforce strict status checks
+  strict: true
+
+  # List of required status checks from CI/CD workflows
+  contexts:
+    # Core CI checks
+    - "ci"
+    - "docker-integration"
+
+    # Security scanning checks
+    - "codeql-analysis"
+    - "dependency-scan"
+    - "secrets-detection"
+    - "container-scan"
+    - "license-check"
+    - "iac-scan"
+    - "security-summary"
+
+    # Performance testing checks
+    - "cache-performance"
+    - "circuit-breaker-performance"
+    - "load-testing"
+    - "performance-summary"
+
+# Pull request requirements
+required_pull_request_reviews:
+  # Require at least 2 approving reviews
+  required_approving_review_count: 2
+
+  # Dismiss stale reviews when new commits are pushed
+  dismiss_stale_reviews: true
+
+  # Require review from code owners (based on CODEOWNERS file)
+  require_code_owner_reviews: true
+
+  # Dismissal restrictions - only specific teams can dismiss reviews
+  dismissal_restrictions:
+    teams:
+      - "@multiship/maintainers"
+      - "@multiship/devops-team"
+      - "@multiship/security-team"
+
+# Push restrictions
+restrictions:
+  # Only specific teams can push directly to main
+  teams:
+    - "@multiship/maintainers"
+    - "@multiship/devops-team"
+  # Include administrators in push restrictions
+  enforces_admins: true
+
+# Additional protection settings
+required_conversation_resolution: true
+allow_force_pushes: false
+allow_deletions: false
+
+# Linear history enforcement
+required_linear_history: true
+
+# Lock branch during release processes
+lock_branch: false
+
+# Branch protection exemptions
+exemptions:
+  # No exemptions for security patches
+  security_advisories: false

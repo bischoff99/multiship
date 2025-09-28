@@ -1,0 +1,49 @@
+# CODEOWNERS for multiship project
+# Lines starting with '#' are comments.
+# Each line is a file pattern followed by one or more owners.
+
+# Global owners - can review all changes
+* @multiship/maintainers
+
+# API Backend (Fastify)
+apps/api/ @multiship/backend-team @multiship/api-owners
+/apps/api/src/routes/ @multiship/api-owners @multiship/backend-team
+/apps/api/src/middleware/ @multiship/backend-team @multiship/security-team
+
+# Web Frontend (Next.js)
+apps/web/ @multiship/frontend-team @multiship/web-owners
+/apps/web/app/ @multiship/frontend-team
+
+# Database Package (Prisma)
+packages/db/ @multiship/backend-team @multiship/database-team
+/packages/db/prisma/ @multiship/database-team
+/packages/db/src/services/ @multiship/backend-team @multiship/database-team
+
+# Providers Package (Shipping integrations)
+packages/providers/ @multiship/backend-team @multiship/providers-team
+/packages/providers/src/adapters/ @multiship/providers-team
+/packages/providers/src/cache/ @multiship/backend-team @multiship/providers-team
+/packages/providers/src/config/ @multiship/backend-team @multiship/devops-team
+/packages/providers/src/monitoring/ @multiship/devops-team @multiship/providers-team
+/packages/providers/src/errors/ @multiship/backend-team @multiship/providers-team
+
+# Configuration files
+/.github/ @multiship/devops-team @multiship/maintainers
+package.json @multiship/devops-team @multiship/maintainers
+pnpm-workspace.yaml @multiship/devops-team @multiship/maintainers
+tsconfig*.json @multiship/backend-team @multiship/frontend-team
+docker-compose.yml @multiship/devops-team @multiship/backend-team
+
+# Documentation
+*.md @multiship/maintainers @multiship/documentation-team
+/docs/ @multiship/documentation-team
+
+# CI/CD and deployment
+/.github/workflows/ @multiship/devops-team
+**/Dockerfile* @multiship/devops-team
+**/*.dockerfile @multiship/devops-team
+
+# Security related files
+**/.env* @multiship/security-team @multiship/devops-team
+**/security.ts @multiship/security-team
+**/auth* @multiship/security-team @multiship/backend-team

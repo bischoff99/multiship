@@ -1,0 +1,223 @@
+# Repository Automation Rules
+# Comprehensive automation for efficient repository management
+
+# Auto-assignment rules based on CODEOWNERS
+auto_assign:
+  # Enable auto-assignment for pull requests
+  enabled: true
+
+  # Assign based on CODEOWNERS file
+  based_on_codeowners: true
+
+  # Additional assignment rules
+  rules:
+    # API changes - assign backend and API owners
+    - pattern: 'apps/api/**'
+      assignees:
+        - "@multiship/backend-team"
+        - "@multiship/api-owners"
+
+    # Web changes - assign frontend team
+    - pattern: 'apps/web/**'
+      assignees:
+        - "@multiship/frontend-team"
+        - "@multiship/web-owners"
+
+    # Provider changes - assign providers team
+    - pattern: 'packages/providers/**'
+      assignees:
+        - "@multiship/backend-team"
+        - "@multiship/providers-team"
+
+    # Database changes - assign database team
+    - pattern: 'packages/db/**'
+      assignees:
+        - "@multiship/backend-team"
+        - "@multiship/database-team"
+
+    # Configuration changes - assign devops
+    - pattern: '.github/**'
+      assignees:
+        - "@multiship/devops-team"
+
+    # Security changes - assign security team
+    - pattern: '**/security.ts'
+      assignees:
+        - "@multiship/security-team"
+
+# Auto-labeling rules
+auto_label:
+  enabled: true
+
+  # Label based on file paths and content
+  rules:
+    # Component labels
+    - pattern: 'apps/api/**'
+      labels: ['component:api', 'team:backend']
+
+    - pattern: 'apps/web/**'
+      labels: ['component:web', 'team:frontend']
+
+    - pattern: 'packages/db/**'
+      labels: ['component:database', 'team:backend']
+
+    - pattern: 'packages/providers/**'
+      labels: ['component:providers', 'team:backend']
+
+    # Feature area labels
+    - pattern: '**/src/routes/**'
+      labels: ['area:routes']
+
+    - pattern: '**/src/middleware/**'
+      labels: ['area:middleware']
+
+    - pattern: '**/src/adapters/**'
+      labels: ['area:adapters']
+
+    - pattern: '**/src/cache/**'
+      labels: ['area:cache']
+
+    - pattern: '**/src/monitoring/**'
+      labels: ['area:monitoring']
+
+    # Type labels based on content
+    - pattern: '(?i)feat|feature|add|new'
+      labels: ['type:feature']
+
+    - pattern: '(?i)fix|bug|error|issue'
+      labels: ['type:bugfix']
+
+    - pattern: '(?i)refactor|improve|enhance'
+      labels: ['type:refactor']
+
+    - pattern: '(?i)test|spec'
+      labels: ['type:test']
+
+    - pattern: '(?i)doc|readme|comment'
+      labels: ['type:documentation']
+
+    - pattern: '(?i)security|auth|vulnerability'
+      labels: ['type:security']
+
+    - pattern: '(?i)performance|optimize|speed'
+      labels: ['type:performance']
+
+    # Priority labels
+    - pattern: '(?i)urgent|critical|emergency|hotfix'
+      labels: ['priority:high']
+
+    - pattern: '(?i)breaking|major|breaking-change'
+      labels: ['priority:high', 'breaking-change']
+
+# Stale issue and PR management
+stale:
+  enabled: true
+
+  # Issues configuration
+  issues:
+    # Mark as stale after 60 days of inactivity
+    days_until_stale: 60
+
+    # Close after 30 days of being stale
+    days_until_close: 30
+
+    # Labels to add when marking as stale
+    stale_label: 'stale'
+
+    # Labels to add when closing
+    close_label: 'closed-stale'
+
+    # Comment to add when marking as stale
+    stale_message: >
+      This issue has been automatically marked as stale because it has not had
+      recent activity. It will be closed if no further activity occurs. Thank you
+      for your contributions.
+
+    # Comment to add when closing
+    close_message: >
+      This issue has been automatically closed due to inactivity. Please reopen
+      if you believe this issue is still relevant and needs attention.
+
+    # Exempt labels from stale management
+    exempt_labels:
+      - 'priority:high'
+      - 'type:security'
+      - 'bug:critical'
+      - 'pinned'
+      - 'security'
+
+    # Exempt projects from stale management
+    exempt_projects: false
+
+    # Only mark issues as stale (don't close them automatically)
+    only_stale: false
+
+  # Pull requests configuration
+  pulls:
+    # Mark as stale after 30 days of inactivity
+    days_until_stale: 30
+
+    # Close after 14 days of being stale
+    days_until_close: 14
+
+    # Labels to add when marking as stale
+    stale_label: 'stale'
+
+    # Labels to add when closing
+    close_label: 'closed-stale'
+
+    # Comment to add when marking as stale
+    stale_message: >
+      This pull request has been automatically marked as stale because it has not had
+      recent activity. Please update or close if no longer needed.
+
+    # Comment to add when closing
+    close_message: >
+      This pull request has been automatically closed due to inactivity. Please reopen
+      if this change is still needed.
+
+    # Exempt labels from stale management
+    exempt_labels:
+      - 'blocked'
+      - 'on-hold'
+      - 'needs-review'
+      - 'work-in-progress'
+
+# Auto-delete merged branches
+auto_delete_branch:
+  enabled: true
+
+  # Delete branches after merge
+  delete_merged_branches: true
+
+  # Branch patterns to exclude from deletion
+  exclude_patterns:
+    - 'main'
+    - 'develop'
+    - 'release/*'
+    - 'hotfix/*'
+
+  # Only delete branches created from issues/PRs
+  only_delete_when_merged: true
+
+  # Wait period before deletion (in minutes)
+  delay: 0
+
+# Auto-merge rules (for specific scenarios)
+auto_merge:
+  enabled: false
+
+  # Only allow auto-merge for specific labels
+  allowed_labels:
+    - 'auto-merge:safe'
+
+  # Require specific status checks
+  required_status_checks:
+    - 'ci'
+    - 'security-summary'
+
+  # Require minimum number of approvals
+  required_approvals: 1
+
+  # Auto-merge method
+  method: 'squash'

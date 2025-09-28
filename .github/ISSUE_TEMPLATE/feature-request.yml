@@ -1,0 +1,198 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for the multiship project
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+
+        Thank you for suggesting improvements to the multiship project! Please provide detailed information about your feature request to help us understand and evaluate it.
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: |
+        Provide a clear and detailed description of the feature you'd like to see implemented.
+      placeholder: |
+        I would like to add a new endpoint that allows bulk shipment creation across multiple providers...
+      value: |
+        **Feature Overview:**
+        [Brief summary of the feature]
+
+        **Use Case:**
+        [Describe the specific problem this feature would solve]
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case-details
+    attributes:
+      label: Use Case Details
+      description: |
+        Describe in detail how this feature would be used and who would benefit from it. Include any specific workflows or user journeys.
+      placeholder: |
+        When a user needs to create multiple shipments at once, they currently have to make individual API calls for each provider. This feature would allow them to submit a single request with multiple shipments and receive consolidated results.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider-impact
+    attributes:
+      label: Provider Impact
+      description: Which shipping providers would be affected by this feature?
+      options:
+        - EasyPost
+        - Shippo
+        - Veeqo
+        - All providers
+        - Provider-agnostic
+        - New provider integration
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-scope
+    attributes:
+      label: Feature Scope
+      description: How broad is the scope of this feature?
+      options:
+        - New API endpoint
+        - Enhancement to existing endpoint
+        - New provider integration
+        - Infrastructure improvement
+        - UI enhancement
+        - Configuration option
+        - Monitoring/alerting feature
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: textarea
+    id: api-specification
+    attributes:
+      label: API Specification (if applicable)
+      description: |
+        If this feature involves API changes, please provide details about endpoints, request/response formats, or OpenAPI specifications.
+      placeholder: |
+        **Endpoint:** POST /api/shipments/bulk
+
+        **Request Body:**
+        ```json
+        {
+          "shipments": [
+            {
+              "provider": "easypost",
+              "shipment_data": { ... }
+            },
+            {
+              "provider": "shippo",
+              "shipment_data": { ... }
+            }
+          ]
+        }
+        ```
+
+        **Response:**
+        ```json
+        {
+          "results": [
+            {
+              "provider": "easypost",
+              "success": true,
+              "tracking_number": "EZ123456789US",
+              "carrier": "USPS"
+            }
+          ]
+        }
+        ```
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: implementation-suggestions
+    attributes:
+      label: Implementation Suggestions
+      description: |
+        If you have thoughts on how this feature should be implemented, please share them. Consider the project's architecture patterns and provider integrations.
+      placeholder: |
+        This could be implemented by:
+        1. Creating a new BulkShipmentService that coordinates with multiple provider adapters
+        2. Adding a circuit breaker to handle partial failures gracefully
+        3. Implementing request deduplication using Redis cache
+        4. Adding monitoring for bulk operation performance
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternative-solutions
+    attributes:
+      label: Alternative Solutions
+      description: |
+        Have you considered any alternative approaches or workarounds? What are the pros/cons of your proposed solution vs alternatives?
+      placeholder: |
+        **Alternative 1:** Continue with individual API calls
+        - Pros: Simpler implementation, existing patterns
+        - Cons: Higher latency, more complex client-side handling
+
+        **Alternative 2:** Batch processing with queue system
+        - Pros: Better for very large batches, async processing
+        - Cons: More complex architecture, delayed responses
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Any additional information that would help with implementing or evaluating this feature.
+        This could include wireframes, competitor analysis, user research, or related features in other systems.
+      placeholder: |
+        - Wireframes or mockups (if available)
+        - Similar features in other shipping platforms
+        - Performance requirements or constraints
+        - Security considerations
+        - Compliance requirements
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: |
+        What would need to be true for this feature to be considered complete and successful?
+      placeholder: |
+        - [ ] API endpoint accepts bulk shipment requests
+        - [ ] Returns consolidated results with error handling
+        - [ ] Works with all configured providers
+        - [ ] Includes proper error handling and circuit breaker integration
+        - [ ] Has comprehensive API documentation
+        - [ ] Includes unit and integration tests
+        - [ ] Performance benchmarks meet requirements
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: |
+        Please ensure you've completed these steps before submitting the feature request.
+      options:
+        - label: I have clearly described the feature and its use case
+          required: true
+        - label: I have considered how this fits with the existing architecture
+          required: true
+        - label: I have specified which providers are affected
+          required: true
+        - label: I have provided implementation suggestions (if applicable)
+          required: false
+        - label: I have considered alternative solutions
+          required: false
+        - label: I am willing to discuss implementation details with maintainers
+          required: true

@@ -1,0 +1,151 @@
+name: 📚 Documentation Issue
+description: Report issues or suggest improvements to project documentation
+title: "[Docs]: "
+labels: ["documentation", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Documentation Issue
+
+        Help us improve the multiship project's documentation! Please provide details about what needs to be updated, added, or corrected.
+
+  - type: dropdown
+    id: documentation-type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation needs attention?
+      options:
+        - README.md
+        - API Documentation
+        - Provider Integration Guide
+        - Setup/Installation Guide
+        - Architecture Documentation
+        - Code Comments
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: input
+    id: documentation-location
+    attributes:
+      label: Documentation Location
+      description: |
+        Where is the documentation located? Provide file path or URL if known.
+      placeholder: README.md, /docs/api-guide.md, or https://example.com/docs
+    validations:
+      required: false
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What kind of documentation issue is this?
+      options:
+        - Missing documentation
+        - Outdated information
+        - Incorrect information
+        - Unclear or confusing content
+        - Broken links or references
+        - Missing examples
+        - Typos or grammar issues
+        - Accessibility issues
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-content
+    attributes:
+      label: Current Content (if applicable)
+      description: |
+        If this is about updating existing documentation, please quote the current content that needs to be changed.
+      placeholder: |
+        Current text: "The API runs on port 3000"
+        Should be: "The API runs on port 8080"
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: suggested-improvement
+    attributes:
+      label: Suggested Improvement
+      description: |
+        Please provide details about what should be changed, added, or improved in the documentation.
+      placeholder: |
+        This section should include:
+        1. Step-by-step setup instructions for new provider integrations
+        2. Configuration examples for different environments
+        3. Troubleshooting section for common Docker Compose issues
+        4. API endpoint documentation with request/response examples
+    validations:
+      required: true
+
+  - type: textarea
+    id: context-additional-info
+    attributes:
+      label: Additional Context
+      description: |
+        Any additional information that would help us understand the documentation issue better.
+        This could include related issues, specific use cases, or why this documentation is important.
+      placeholder: |
+        - This affects new developers joining the project
+        - Missing information about provider-specific configuration
+        - Related to recent API changes that weren't documented
+        - Screenshots or examples would be helpful
+    validations:
+      required: false
+
+  - type: textarea
+    id: provider-specific-details
+    attributes:
+      label: Provider-Specific Details (if applicable)
+      description: |
+        If this documentation issue is related to shipping provider integrations, please specify which providers and what aspects need documentation.
+      placeholder: |
+        **Provider:** EasyPost
+        **Topic:** Rate limiting configuration and error handling
+        **Current documentation:** Missing examples of error responses
+        **Needed:** Examples of retry logic and circuit breaker behavior
+    validations:
+      required: false
+
+  - type: textarea
+    id: examples-or-screenshots
+    attributes:
+      label: Examples or Screenshots
+      description: |
+        If applicable, provide examples of what the documentation should look like or include screenshots of the current documentation.
+      placeholder: |
+        **Example of desired format:**
+        ```markdown
+        ## Provider Configuration
+
+        ### EasyPost Setup
+        1. Set EASYPOST_API_KEY environment variable
+        2. Configure rate limiting in easypost-adapter.ts
+        3. Test connection with health check endpoint
+        ```
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: |
+        Please ensure you've completed these steps before submitting the documentation issue.
+      options:
+        - label: I have specified the type of documentation that needs attention
+          required: true
+        - label: I have clearly described what needs to be changed or added
+          required: true
+        - label: I have provided specific suggestions for improvement
+          required: true
+        - label: I have included relevant context about why this matters
+          required: false
+        - label: I have provided examples or screenshots where helpful
+          required: false
+        - label: I am willing to help review the updated documentation
+          required: false

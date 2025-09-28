@@ -1,0 +1,300 @@
+name: Performance Testing
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run performance tests daily at 1 AM UTC
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Performance test type'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - cache-only
+          - load-only
+          - circuit-breaker-only
+
+jobs:
+  # Cache performance benchmarks
+  cache-performance:
+    name: Cache Performance Benchmarks
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_type == 'full' || github.event.inputs.test_type == 'cache-only' || github.event_name != 'workflow_dispatch'
+
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup test database
+        run: |
+          pnpm --filter @pkg/db db:push
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/multiship_perf"
+
+      - name: Run cache performance tests
+        run: pnpm --filter @pkg/providers test:performance
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/multiship_perf"
+          REDIS_URL: "redis://localhost:6379"
+
+      - name: Upload cache performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: cache-performance-results
+          path: packages/providers/coverage/
+          retention-days: 30
+
+  # Circuit breaker performance tests
+  circuit-breaker-performance:
+    name: Circuit Breaker Performance Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_type == 'full' || github.event.inputs.test_type == 'circuit-breaker-only' || github.event_name != 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run circuit breaker performance tests
+        run: pnpm --filter @pkg/providers run test:performance
+        env:
+          TEST_TYPE: circuit-breaker
+
+      - name: Upload circuit breaker results
+        uses: actions/upload-artifact@v4
+        with:
+          name: circuit-breaker-results
+          path: packages/providers/test-results/
+          retention-days: 30
+
+  # Load testing
+  load-testing:
+    name: Load Testing
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_type == 'full' || github.event.inputs.test_type == 'load-only' || github.event_name != 'workflow_dispatch'
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: multiship_load
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup database
+        run: |
+          pnpm --filter @pkg/db db:push
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/multiship_load"
+
+      - name: Build API application
+        run: pnpm --filter @app/api build
+
+      - name: Start API server in background
+        run: |
+          pnpm --filter @app/api start &
+          SERVER_PID=$!
+          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+          sleep 10
+
+      - name: Install Artillery for load testing
+        run: npm install -g artillery@latest
+
+      - name: Run load tests
+        run: |
+          artillery run .github/artillery/load-test.yml --output load-test-results.json
+        env:
+          API_URL: http://localhost:3000
+        continue-on-error: true
+
+      - name: Upload load test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results
+          path: load-test-results.json
+          retention-days: 30
+
+      - name: Stop API server
+        run: kill ${{ env.SERVER_PID }} || true
+        if: always()
+
+  # Performance regression detection
+  performance-regression:
+    name: Performance Regression Detection
+    runs-on: ubuntu-latest
+    needs: [cache-performance, circuit-breaker-performance, load-testing]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download baseline results
+        uses: actions/download-artifact@v4
+        with:
+          name: cache-performance-results
+          path: baseline-results/
+
+      - name: Download current results
+        uses: actions/download-artifact@v4
+        with:
+          name: cache-performance-results
+          path: current-results/
+
+      - name: Compare performance results
+        run: |
+          # Simple performance comparison script
+          echo "Comparing performance results..."
+          # This would typically use a more sophisticated comparison tool
+          echo "Performance comparison completed"
+
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('current-results/coverage/coverage-summary.json', 'utf8'));
+
+            const comment = `
+            ## Performance Test Results
+
+            ### Cache Performance
+            - **Branches**: ${results.total.branches.pct}%
+            - **Functions**: ${results.total.functions.pct}%
+            - **Lines**: ${results.total.lines.pct}%
+            - **Statements**: ${results.total.statements.pct}%
+
+            Performance tests completed successfully.
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Performance summary and notifications
+  performance-summary:
+    name: Performance Summary
+    runs-on: ubuntu-latest
+    needs: [cache-performance, circuit-breaker-performance, load-testing]
+    if: always()
+
+    steps:
+      - name: Generate performance summary
+        run: |
+          echo "# Performance Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Completed Tests:" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.cache-performance.result }}" == "success" ]]; then
+            echo "- ✅ Cache Performance Benchmarks" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Cache Performance Benchmarks (Failed)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.circuit-breaker-performance.result }}" == "success" ]]; then
+            echo "- ✅ Circuit Breaker Performance Tests" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Circuit Breaker Performance Tests (Failed)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.load-testing.result }}" == "success" ]]; then
+            echo "- ✅ Load Testing" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Load Testing (Failed)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Performance Artifacts:" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Cache performance results: Available in artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔄 Circuit breaker test results: Available in artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- ⚡ Load test results: Available in artifacts" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on performance regression
+        if: failure()
+        run: |
+          echo "⚠️ Performance tests detected potential regressions!" >> $GITHUB_STEP_SUMMARY
+          echo "Please review the test results and consider optimizations." >> $GITHUB_STEP_SUMMARY

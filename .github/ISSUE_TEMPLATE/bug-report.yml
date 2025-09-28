@@ -1,0 +1,170 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior in the multiship application
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report
+
+        Thank you for helping us improve the multiship project! Please provide as much detail as possible to help us understand and reproduce the issue.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: |
+        Describe the bug in detail. What were you trying to do when this occurred?
+      placeholder: |
+        I was trying to create a shipment using the EasyPost provider when...
+      value: |
+        **What happened:**
+        [Describe the unexpected behavior]
+
+        **What I expected to happen:**
+        [Describe what should have happened instead]
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        Provide a step-by-step guide on how to reproduce this issue. Include any specific shipping providers, API endpoints, or configuration that might be relevant.
+      placeholder: |
+        1. Start the application with `docker-compose up`
+        2. Navigate to the shipments endpoint `/api/shipments`
+        3. Attempt to create a shipment with provider "easypost"
+        4. Include specific payload details...
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: shipping-provider
+    attributes:
+      label: Shipping Provider
+      description: Which shipping provider was involved in this issue?
+      options:
+        - EasyPost
+        - Shippo
+        - Veeqo
+        - Multiple providers
+        - Not provider-specific
+        - Other (please specify in description)
+    validations:
+      required: true
+
+  - type: input
+    id: api-endpoint
+    attributes:
+      label: API Endpoint (if applicable)
+      description: |
+        Which API endpoint was being used when the issue occurred? (e.g., /api/shipments, /api/quotes)
+      placeholder: /api/shipments
+    validations:
+      required: false
+
+  - type: textarea
+    id: error-logs
+    attributes:
+      label: Error Logs
+      description: |
+        Please include any error messages, stack traces, or relevant log entries. Include correlation IDs if available.
+      placeholder: |
+        ```
+        Error: ProviderError [NetworkError]: Failed to connect to EasyPost API
+        Correlation ID: abc-123-def-456
+        Stack trace:
+        at EasyPostAdapter.quote (packages/providers/src/adapters/easypost-adapter.ts:45:12)
+        ...
+        ```
+      render: shell
+    validations:
+      required: false
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js Version
+      description: What version of Node.js are you using?
+      placeholder: "18.17.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system and version are you using?
+      placeholder: "Linux Ubuntu 22.04"
+    validations:
+      required: true
+
+  - type: textarea
+    id: database-version
+    attributes:
+      label: Database & Infrastructure Info
+      description: |
+        Please specify your database version, Redis version, and any other relevant infrastructure details.
+      placeholder: |
+        - PostgreSQL: 15.3
+        - Redis: 7.0.12
+        - Docker Compose: version 2.20.2
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment-variables
+    attributes:
+      label: Environment Configuration
+      description: |
+        List any relevant environment variables that might be related to this issue (without sensitive values).
+        For provider-related issues, mention which provider configuration variables are set.
+      placeholder: |
+        - EASYPOST_API_KEY: [configured]
+        - REDIS_URL: redis://localhost:6379
+        - NODE_ENV: production
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Any additional information that might help us understand the issue better.
+        This could include screenshots, related issues, workarounds you've tried, or anything else relevant.
+      placeholder: |
+        - Circuit breaker status when error occurred
+        - Cache hit/miss ratios
+        - Network conditions
+        - Concurrent requests or load information
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: |
+        Please ensure you've completed these steps before submitting the bug report.
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+        - label: I have provided clear steps to reproduce the issue
+          required: true
+        - label: I have included relevant error logs and stack traces
+          required: false
+        - label: I have specified the shipping provider(s) involved
+          required: true
+        - label: I have included environment information (Node.js, OS, database versions)
+          required: true
+        - label: I am willing to provide additional information if needed
+          required: true

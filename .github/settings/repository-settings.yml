@@ -1,0 +1,215 @@
+# Repository Settings Configuration
+# Global repository configuration for multiship project
+
+# Repository metadata
+repository:
+  # Repository name (automatically set by GitHub)
+  name: multiship
+
+  # Repository description
+  description: "Multi-provider shipping integration platform with caching, monitoring, and circuit breaker patterns"
+
+  # Repository visibility (private/public)
+  private: false
+
+  # Default branch
+  default_branch: main
+
+  # Homepage URL (optional)
+  homepage: ""
+
+  # Topics/tags for discoverability
+  topics:
+    - shipping
+    - logistics
+    - api
+    - typescript
+    - nodejs
+    - monorepo
+    - providers
+    - caching
+    - monitoring
+    - circuit-breaker
+
+# Branch settings
+branches:
+  # Default branch protection (fallback)
+  protection:
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: false
+    required_status_checks:
+      strict: false
+      contexts: []
+    restrictions: null
+    required_linear_history: false
+    allow_force_pushes: false
+    allow_deletions: false
+    required_conversation_resolution: true
+
+# Merge settings
+merge:
+  # Allow merge commits
+  allow_merge_commit: true
+
+  # Allow squash merging
+  allow_squash_merge: true
+
+  # Allow rebase merging
+  allow_rebase_merge: true
+
+  # Default merge method
+  default_merge_method: "squash"
+
+  # Delete head branch after merge
+  delete_branch_on_merge: true
+
+# Issue settings
+issues:
+  # Enable issues
+  enabled: true
+
+  # Blank issues (allow issues without templates)
+  blank_issues_enabled: true
+
+  # Issue templates configuration
+  templates:
+    - name: "Bug Report"
+      title: "🐛 Bug Report: [Brief description]"
+      description: "Report a bug or unexpected behavior"
+      labels:
+        - bug
+        - needs-triage
+      assignees:
+        - "@multiship/maintainers"
+
+    - name: "Feature Request"
+      title: "✨ Feature Request: [Brief description]"
+      description: "Request a new feature or enhancement"
+      labels:
+        - enhancement
+        - needs-triage
+      assignees:
+        - "@multiship/maintainers"
+
+    - name: "Security Issue"
+      title: "🔒 Security Issue: [Brief description]"
+      description: "Report a security vulnerability"
+      labels:
+        - security
+        - priority:high
+      assignees:
+        - "@multiship/security-team"
+
+# Pull request settings
+pull_requests:
+  # Allow rebase merging
+  allow_rebase_merge: true
+
+  # Allow squash merging
+  allow_squash_merge: true
+
+  # Allow merge commits
+  allow_merge_commit: false
+
+  # Default merge method
+  default_merge_method: "squash"
+
+  # Delete head branch after merge
+  delete_branch_on_merge: true
+
+  # Auto-assign reviewers
+  auto_assign:
+    enabled: true
+    reviewers: 1
+
+# Project settings
+projects:
+  # Enable projects v2 (new projects experience)
+  enabled: true
+
+  # Default project visibility
+  default_visibility: "private"
+
+# Actions settings
+actions:
+  # Enable GitHub Actions
+  enabled: true
+
+  # Allow actions from forks
+  allow_github_fork_actions: false
+
+  # Allowed actions (restrict to specific actions)
+  allowed_actions: "selected"
+
+  # Selected allowed actions
+  selected_allowed_actions:
+    actions:
+      - "actions/checkout@v4"
+      - "actions/setup-node@v4"
+      - "actions/setup-python@v4"
+      - "actions/cache@v4"
+      - "actions/upload-artifact@v4"
+      - "actions/download-artifact@v4"
+      - "actions/github-script@v7"
+      - "codecov/codecov-action@v4"
+      - "docker/*"
+      - "pnpm/action-setup@v4"
+    verified_creators:
+      - "github"
+      - "docker"
+      - "pnpm"
+      - "codecov"
+      - "bridgecrewio"
+      - "dependency-check"
+      - "aquasecurity"
+      - "gitleaks"
+      - "LicenseFinder"
+
+# Security settings
+security:
+  # Enable security policy
+  enable_security_policy: true
+
+  # Enable vulnerability alerts
+  enable_vulnerability_alerts: true
+
+  # Enable automated security fixes
+  enable_automated_security_fixes: true
+
+  # Enable code scanning alerts
+  enable_code_scanning_alerts: true
+
+  # Enable secret scanning
+  enable_secret_scanning: true
+
+  # Enable secret scanning push protection
+  enable_secret_scanning_push_protection: true
+
+  # Enable dependabot alerts
+  enable_dependabot_alerts: true
+
+  # Enable dependabot security updates
+  enable_dependabot_updates: true
+
+# Archive settings
+archive:
+  # Allow repository archival
+  allow_archiving: true
+
+# Discussion settings
+discussions:
+  # Enable discussions
+  enabled: true
+
+  # Discussion categories
+  categories:
+    - name: "General"
+      description: "General discussion about the project"
+    - name: "Ideas"
+      description: "Share ideas and feature requests"
+    - name: "Q&A"
+      description: "Questions and answers"
+    - name: "Show and Tell"
+      description: "Share what you've built with the project"

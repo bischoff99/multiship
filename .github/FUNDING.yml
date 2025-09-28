@@ -1,0 +1,33 @@
+# Funding configuration for multiship project
+# This file enables GitHub's sponsorship features and displays funding options on the repository
+
+# GitHub Sponsors
+github: [multiship]
+
+# Open Collective
+open_collective: multiship
+
+# Ko-fi
+ko_fi: multiship
+
+# Tidelift
+tidelift: npm/multiship
+
+# Patreon
+patreon: multiship
+
+# Community Bridge
+community_bridge: multiship
+
+# Liberapay
+liberapay: multiship
+
+# IssueHunt
+issuehunt: multiship
+
+# Otechie
+otechie: multiship
+
+# Custom funding options
+# Add custom funding URLs here if you have specific sponsorship links
+# custom: ["https://sponsor.multiship.com", "https://opencollective.com/multiship"]
