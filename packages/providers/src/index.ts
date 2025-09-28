@@ -3,6 +3,7 @@ import { ShipmentInput, type RateQuote, type PurchaseResult } from './types.js';
 import { epQuote, epBuy } from './easypost.js';
 import { spQuote, spBuy } from './shippo.js';
 import { vqSetAllocationPackage, vqQuote, vqBuy } from './veeqo.js';
+import { ProviderFactory } from './factory.js';
 
 export async function quoteAll(input: unknown): Promise<RateQuote[]> {
   const parsed = ShipmentInput.parse(input);
@@ -66,3 +67,11 @@ export async function purchase(choice: {
     trackingCode: null
   };
 }
+
+// Export ProviderFactory and other utilities for API usage
+export { ProviderFactory } from './factory.js';
+export { Logger } from './utils/logger.js';
+export { RateLimiter } from './utils/rate-limiter.js';
+export { EnhancedRateLimiter, RateLimiterFactory } from './utils/enhanced-rate-limiter.js';
+export { MetricsCollector, metricsCollector } from './monitoring/metrics-collector.js';
+export * from './errors/provider-errors.js';

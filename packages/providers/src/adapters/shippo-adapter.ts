@@ -3,30 +3,57 @@ import { ProviderAdapter, ShipmentInput, RateQuote, PurchaseResult, CircuitBreak
 import { MemoryCache } from '../cache/memory-cache.js';
 import { RedisCache } from '../cache/redis-cache.js';
 import { cacheConfig, CacheConfigUtils } from '../config/cache-config.js';
+import { Logger, LogLevel } from '../utils/logger.js';
+import { CircuitBreaker } from '../utils/circuit-breaker.js';
+import {
+  ProviderError,
+  NetworkError,
+  ConfigurationError,
+  TimeoutError,
+  CircuitBreakerError,
+  RateLimitError,
+  classifyError,
+  createErrorContext,
+  generateCorrelationId
+} from '../errors/provider-errors.js';
+import { getProviderConfig } from '../config/provider-config.js';
 
 export class ShippoAdapter implements ProviderAdapter {
   readonly name = 'shippo';
   readonly enabled: boolean;
   private client: any;
   private cache: any;
-  private circuitBreaker: CircuitBreakerState;
-  private readonly MAX_FAILURES = 5;
-  private readonly TIMEOUT_MS = 30000;
-  private readonly HALF_OPEN_TIMEOUT_MS = 60000;
+  private circuitBreaker: CircuitBreaker;
+  private config: any;
+  private logger: Logger;
 
   constructor() {
+    this.config = getProviderConfig('shippo');
     const apiKey = process.env.SHIPPO_API_KEY;
-    this.enabled = Boolean(apiKey);
+    this.enabled = Boolean(apiKey) && this.config.enabled;
+
     this.client = new (ShippoSDK as any)(apiKey!);
+
+    // Initialize logger with provider-specific configuration
+    this.logger = new Logger(
+      this.config.logLevel,
+      [new (require('../utils/logger.js').ConsoleDestination)()],
+      { provider: this.name }
+    );
 
     // Initialize cache based on configuration
     this.initializeCache();
 
-    this.circuitBreaker = {
-      failures: 0,
-      lastFailureTime: 0,
-      state: 'CLOSED'
-    };
+    // Initialize circuit breaker with configuration
+    this.circuitBreaker = new CircuitBreaker(
+      this.config.circuitBreaker,
+      this.logger
+    );
+
+    this.logger.info('ShippoAdapter initialized', {
+      enabled: this.enabled,
+      circuitBreakerState: this.circuitBreaker.getState().state
+    });
   }
 
   /**
@@ -46,94 +73,109 @@ export class ShippoAdapter implements ProviderAdapter {
     }
   }
 
-  private async executeWithRetry<T>(operation: () => Promise<T>, maxRetries: number = 3): Promise<T> {
-    let lastError: Error;
+  private async executeWithRetry<T>(operation: () => Promise<T>, maxRetries?: number): Promise<T> {
+    const config = this.config.retry;
+    const retryCount = maxRetries ?? config.maxRetries;
+    let lastError: ProviderError;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const logger = this.logger.withContext({ operation: 'executeWithRetry' });
+
+    for (let attempt = 1; attempt <= retryCount; attempt++) {
       try {
-        // Check circuit breaker
-        if (!this.canExecute()) {
-          throw new Error(`Shippo circuit breaker is ${this.circuitBreaker.state}`);
-        }
+        // Use circuit breaker to execute operation
+        const result = await this.circuitBreaker.execute(async () => {
+          return await Promise.race([
+            operation(),
+            this.timeoutPromise()
+          ]);
+        }, 'executeWithRetry');
 
-        const result = await Promise.race([
-          operation(),
-          this.timeoutPromise()
-        ]);
-
-        // Success - reset circuit breaker
-        this.onSuccess();
+        logger.debug('Operation succeeded', { attempt, totalAttempts: retryCount });
         return result;
       } catch (error) {
-        lastError = error as Error;
+        const providerError = classifyError(error, this.name, 'executeWithRetry', {
+          attempt,
+          maxRetries: retryCount
+        });
 
-        if (attempt === maxRetries) {
-          this.onFailure();
-          throw error;
+        lastError = providerError;
+        logger.warn('Operation attempt failed', {
+          attempt,
+          maxRetries: retryCount,
+          errorMessage: providerError.message,
+          isRetryable: providerError.isRetryable
+        }, providerError);
+
+        if (attempt === retryCount) {
+          logger.error('All retry attempts exhausted', {
+            attempt,
+            maxRetries: retryCount,
+            finalError: providerError.message
+          }, providerError);
+          throw providerError;
         }
 
-        // Wait before retry (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        // Wait before retry with exponential backoff
+        const delay = Math.min(
+          config.baseDelayMs * Math.pow(config.backoffFactor, attempt - 1),
+          config.maxDelayMs
+        );
+
+        logger.info('Retrying after delay', { delay, attempt, maxRetries: retryCount });
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
 
     throw lastError!;
   }
 
-  private canExecute(): boolean {
-    const now = Date.now();
-
-    switch (this.circuitBreaker.state) {
-      case 'CLOSED':
-        return true;
-      case 'OPEN':
-        if (now - this.circuitBreaker.lastFailureTime > this.HALF_OPEN_TIMEOUT_MS) {
-          this.circuitBreaker.state = 'HALF_OPEN';
-          return true;
-        }
-        return false;
-      case 'HALF_OPEN':
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  private onSuccess(): void {
-    this.circuitBreaker.failures = 0;
-    this.circuitBreaker.state = 'CLOSED';
-  }
-
-  private onFailure(): void {
-    this.circuitBreaker.failures++;
-    this.circuitBreaker.lastFailureTime = Date.now();
-
-    if (this.circuitBreaker.failures >= this.MAX_FAILURES) {
-      this.circuitBreaker.state = 'OPEN';
-    }
-  }
 
   private timeoutPromise(): Promise<never> {
+    const timeoutMs = this.config.timeouts.requestTimeout;
     return new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Shippo request timeout')), this.TIMEOUT_MS);
+      setTimeout(() => {
+        const timeoutError = new TimeoutError(
+          'Shippo request timeout',
+          this.name,
+          'request',
+          timeoutMs
+        );
+        this.logger.logTimeout(this.name, 'request', timeoutMs);
+        reject(timeoutError);
+      }, timeoutMs);
     });
   }
 
   async quote(input: ShipmentInput): Promise<RateQuote[]> {
-    return this.executeWithRetry(async () => {
-      // Check if caching is enabled and should be used for this operation
-      if (this.cache && CacheConfigUtils.shouldCache('rateQuote', cacheConfig.getConfig())) {
-        return this.getCachedQuote(input);
-      }
+    const correlationId = this.logger.generateCorrelationId();
+    const logger = this.logger.withCorrelationId(correlationId).forOperation('quote');
 
-      return this.getFreshQuote(input);
+    return this.executeWithRetry(async () => {
+      try {
+        logger.info('Getting rate quote', {
+          correlationId,
+          from: input.from,
+          to: input.to,
+          parcel: input.parcel
+        });
+
+        // Check if caching is enabled and should be used for this operation
+        if (this.cache && CacheConfigUtils.shouldCache('rateQuote', cacheConfig.getConfig())) {
+          return this.getCachedQuote(input, correlationId, logger);
+        }
+
+        return this.getFreshQuote(input, correlationId, logger);
+      } catch (error) {
+        logger.error('Rate quote failed', { correlationId }, error instanceof Error ? error : undefined);
+        throw error;
+      }
     });
   }
 
   /**
    * Get cached quote if available, otherwise fetch fresh quote
    */
-  private async getCachedQuote(input: ShipmentInput): Promise<RateQuote[]> {
+  private async getCachedQuote(input: ShipmentInput, correlationId: string, logger: any): Promise<RateQuote[]> {
     const cacheKey = CacheConfigUtils.createRateQuoteKey('shippo', input.from, input.to, input.parcel);
     const ttl = cacheConfig.getTTL('rateQuote');
 
@@ -141,24 +183,28 @@ export class ShippoAdapter implements ProviderAdapter {
       // Try to get from cache first
       const cachedResult = await this.cache.get(cacheKey);
       if (cachedResult) {
+        logger.debug('Cache hit for rate quote', { correlationId, cacheKey });
         return cachedResult;
       }
 
       // Cache miss - get fresh quote and cache it
-      const freshResult = await this.getFreshQuote(input);
+      const freshResult = await this.getFreshQuote(input, correlationId, logger);
       await this.cache.set(cacheKey, freshResult, { ttl });
 
+      logger.debug('Cached fresh quote result', { correlationId, cacheKey });
       return freshResult;
     } catch (error) {
-      console.error('Cache error, falling back to fresh quote:', error);
-      return this.getFreshQuote(input);
+      logger.warn('Cache error, falling back to fresh quote', { correlationId, error: error instanceof Error ? error.message : String(error) });
+      return this.getFreshQuote(input, correlationId, logger);
     }
   }
 
   /**
    * Get fresh quote from Shippo API
    */
-  private async getFreshQuote(input: ShipmentInput): Promise<RateQuote[]> {
+  private async getFreshQuote(input: ShipmentInput, correlationId: string, logger: any): Promise<RateQuote[]> {
+    logger.debug('Creating shipment for rate quote', { correlationId });
+
     const shipment = await this.client.shipment.create({
       address_from: input.from,
       address_to: input.to,
@@ -171,6 +217,12 @@ export class ShippoAdapter implements ProviderAdapter {
         mass_unit: input.parcel.mass_unit ?? 'oz'
       }],
       async: false
+    });
+
+    logger.debug('Shipment created, processing rates', {
+      correlationId,
+      shipmentId: shipment.object_id,
+      ratesCount: (shipment.rates ?? shipment.rates_list ?? []).length
     });
 
     const rates = shipment.rates ?? shipment.rates_list ?? [];
@@ -187,6 +239,11 @@ export class ShippoAdapter implements ProviderAdapter {
   }
 
   async purchase(rateId: string, shipmentId?: string): Promise<PurchaseResult> {
+    const correlationId = this.logger.generateCorrelationId();
+    const logger = this.logger.withCorrelationId(correlationId).forOperation('purchase');
+
+    logger.info('Purchasing shipment', { correlationId, rateId, shipmentId });
+
     const result = await this.executeWithRetry(async () => {
       const tx = await this.client.transaction.create({
         rate: rateId,
@@ -194,7 +251,19 @@ export class ShippoAdapter implements ProviderAdapter {
       });
 
       if (tx.status !== 'SUCCESS') {
-        throw new Error(`Shippo purchase failed: ${tx.status}`);
+        const purchaseError = new ConfigurationError(
+          `Shippo purchase failed: ${tx.status}`,
+          this.name,
+          createErrorContext({
+            provider: this.name,
+            operation: 'purchase',
+            correlationId,
+            rateId,
+            shipmentId
+          })
+        );
+        logger.error('Purchase failed', { correlationId, status: tx.status }, purchaseError);
+        throw purchaseError;
       }
 
       return {
@@ -205,6 +274,12 @@ export class ShippoAdapter implements ProviderAdapter {
       };
     });
 
+    logger.info('Shipment purchased successfully', {
+      correlationId,
+      purchasedShipmentId: result.shipmentId,
+      trackingCode: result.trackingCode
+    });
+
     // Invalidate related caches after successful purchase
     if (this.cache) {
       try {
@@ -213,8 +288,12 @@ export class ShippoAdapter implements ProviderAdapter {
         for (const key of keys) {
           await this.cache.delete(key);
         }
+        logger.debug('Cache invalidated after purchase', { correlationId, keysInvalidated: keys.length });
       } catch (error) {
-        console.error('Failed to invalidate cache after purchase:', error);
+        logger.warn('Failed to invalidate cache after purchase', {
+          correlationId,
+          error: error instanceof Error ? error.message : String(error)
+        });
       }
     }
 
@@ -222,6 +301,9 @@ export class ShippoAdapter implements ProviderAdapter {
   }
 
   async healthCheck(): Promise<boolean> {
+    const correlationId = this.logger.generateCorrelationId();
+    const logger = this.logger.withCorrelationId(correlationId).forOperation('healthCheck');
+
     // Use caching for health checks with shorter TTL
     if (this.cache && CacheConfigUtils.shouldCache('healthCheck', cacheConfig.getConfig())) {
       const cacheKey = CacheConfigUtils.createHealthCheckKey('shippo');
@@ -230,25 +312,30 @@ export class ShippoAdapter implements ProviderAdapter {
       try {
         const cached = await this.cache.get(cacheKey);
         if (cached !== null) {
+          logger.debug('Health check cache hit', { correlationId, cached });
           return cached;
         }
 
-        const isHealthy = await this.performHealthCheck();
+        const isHealthy = await this.performHealthCheck(correlationId, logger);
         await this.cache.set(cacheKey, isHealthy, { ttl });
+        logger.debug('Health check cache updated', { correlationId, isHealthy });
         return isHealthy;
       } catch (error) {
-        console.error('Cache error during health check, performing direct check:', error);
-        return this.performHealthCheck();
+        logger.warn('Cache error during health check, performing direct check', {
+          correlationId,
+          error: error instanceof Error ? error.message : String(error)
+        });
+        return this.performHealthCheck(correlationId, logger);
       }
     }
 
-    return this.performHealthCheck();
+    return this.performHealthCheck(correlationId, logger);
   }
 
   /**
    * Perform actual health check against Shippo API
    */
-  private async performHealthCheck(): Promise<boolean> {
+  private async performHealthCheck(correlationId: string, logger: any): Promise<boolean> {
     try {
       // Simple API call to check if service is responsive
       await this.client.address.create({
@@ -259,8 +346,13 @@ export class ShippoAdapter implements ProviderAdapter {
         zip: '12345',
         country: 'US'
       });
+      logger.debug('Health check successful', { correlationId });
       return true;
     } catch (error) {
+      const healthError = classifyError(error, this.name, 'healthCheck', {
+        correlationId
+      });
+      logger.error('Health check failed', { correlationId }, healthError);
       return false;
     }
   }

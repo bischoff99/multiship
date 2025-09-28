@@ -1,0 +1,126 @@
+---
+description: Multiship Provider-Agnostic Shipping API Rules
+globs: ['**/*.ts', '**/*.js', '**/*.tsx', '**/*.jsx', '**/*.json', '**/*.prisma']
+alwaysApply: true
+---
+
+# Multiship Project - Provider-Agnostic Shipping API
+
+You are an expert TypeScript developer working on a provider-agnostic shipping API with EasyPost, Shippo, and Veeqo adapters.
+
+## Project Architecture
+
+- **Monorepo**: PNPM workspaces with apps/ and packages/
+- **API**: Fastify server with authentication and webhooks
+- **Web**: Next.js React application for shipping quotes
+- **Database**: PostgreSQL with Prisma ORM
+- **Cache**: Redis for performance optimization
+- **Providers**: Circuit breaker pattern with retry logic
+
+## Core Patterns
+
+### Provider Adapter Pattern
+
+```typescript
+interface ProviderAdapter {
+  readonly name: string;
+  readonly enabled: boolean;
+  quote(input: ShipmentInput): Promise<RateQuote[]>;
+  purchase(rateId: string, shipmentId?: string): Promise<PurchaseResult>;
+  healthCheck(): Promise<boolean>;
+}
+```
+
+### Circuit Breaker Implementation
+
+- Implement circuit breaker pattern for all provider adapters
+- Use exponential backoff for retries
+- Handle timeout scenarios gracefully
+- Log circuit breaker state changes
+
+### Error Handling
+
+- Use structured error classes (ProviderError, NetworkError, etc.)
+- Implement proper error classification
+- Include correlation IDs for tracing
+- Log errors with context and metadata
+
+## Code Standards
+
+### TypeScript Best Practices
+
+- Use strict TypeScript configuration
+- Prefer interfaces over types for object shapes
+- Use Zod for runtime validation
+- Implement proper type guards and assertions
+
+### Provider Integration
+
+- All providers must implement the ProviderAdapter interface
+- Use singleton pattern for ProviderFactory
+- Implement caching layers (Memory + Redis)
+- Support health checking and monitoring
+
+### Database Operations
+
+- Use Prisma for all database operations
+- Implement proper transaction handling
+- Use connection pooling for performance
+- Follow the existing schema relationships
+
+### API Design
+
+- Use Fastify for the API server
+- Implement proper authentication middleware
+- Use Zod schemas for request/response validation
+- Follow RESTful conventions
+
+### Frontend Development
+
+- Use Next.js App Router
+- Implement proper loading states
+- Handle API errors gracefully
+- Use TypeScript for all components
+
+## File Organization
+
+- Keep provider adapters in separate files
+- Group related utilities in dedicated folders
+- Use barrel exports (index.ts) for clean imports
+- Follow the existing monorepo structure
+
+## Testing Strategy
+
+- Write unit tests for provider adapters
+- Test circuit breaker behavior
+- Mock external API calls
+- Test error scenarios and edge cases
+
+## Performance Considerations
+
+- Implement caching for rate quotes
+- Use connection pooling for databases
+- Optimize API response times
+- Monitor provider API rate limits
+
+## Security
+
+- Never log API keys or sensitive data
+- Validate all input data
+- Use environment variables for configuration
+- Implement proper CORS settings
+
+## Development Workflow
+
+- Use PNPM for package management
+- Follow the existing build scripts
+- Use Docker Compose for local development
+- Implement proper logging and monitoring
+
+When working on this codebase:
+
+1. Always consider the provider-agnostic nature
+2. Maintain consistency across all adapters
+3. Follow the established patterns and conventions
+4. Ensure proper error handling and logging
+5. Test with multiple providers when possible

@@ -4,5 +4,6 @@
     "outDir": "dist",
     "types": ["node", "jest"]
   },
-  "include": ["src", "src/test"]
+  "include": ["src"],
+  "exclude": ["src/test"]
 }

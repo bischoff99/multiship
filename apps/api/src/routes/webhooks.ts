@@ -1,5 +1,5 @@
+import { prisma } from '@pkg/db';
 import type { FastifyInstance } from 'fastify';
-import { prisma } from '@pkg/db/src/client.js';
 import crypto from 'node:crypto';
 
 function verifyEasyPost(req: any, secret: string): boolean {
@@ -11,13 +11,23 @@ function verifyEasyPost(req: any, secret: string): boolean {
 }
 
 export default async function webhooks(app: FastifyInstance, opts: any) {
-  app.addHook('onRequest', async (req) => { (req as any).rawBody = ''; });
+  app.addHook('onRequest', async (req) => {
+    (req as any).rawBody = '';
+  });
   app.addContentTypeParser('*', { parseAs: 'string' }, (req, body, done) => {
-    (req as any).rawBody = body; try { done(null, JSON.parse(body)); } catch { done(null, body); }
+    (req as any).rawBody = body;
+    try {
+      done(null, JSON.parse(body as string));
+    } catch {
+      done(null, body);
+    }
   });
 
   app.post('/webhooks/easypost', async (req, res) => {
-    if (!verifyEasyPost(req, opts.epSecret)) { res.code(401).send({ error: 'bad signature' }); return; }
+    if (!verifyEasyPost(req, opts.epSecret)) {
+      res.code(401).send({ error: 'bad signature' });
+      return;
+    }
     const event = (req.body as any)?.result;
     if (event?.object === 'Tracker') {
       const code = event.tracking_code;

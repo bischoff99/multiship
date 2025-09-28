@@ -33,7 +33,7 @@
       "**/.nyc_output": true,
       "**/pnpm-lock.yaml": true
     },
-    
+
     "search.exclude": {
       "**/node_modules": true,
       "**/dist": true,
@@ -43,7 +43,7 @@
       "**/pnpm-lock.yaml": true,
       "**/.git": true
     },
-    
+
     "files.watcherExclude": {
       "**/node_modules/**": true,
       "**/dist/**": true,
@@ -51,7 +51,7 @@
       "**/coverage/**": true,
       "**/.git/**": true
     },
-    
+
     // ===== MONOREPO CONFIGURATION =====
     "typescript.preferences.includePackageJsonAutoImports": "on",
     "typescript.suggest.includeCompletionsForModuleExports": true,
@@ -59,41 +59,36 @@
     "typescript.suggest.includeCompletionsWithSnippetText": true,
     "typescript.preferences.importModuleSpecifier": "relative",
     "typescript.updateImportsOnFileMove.enabled": "always",
-    
+
     // ===== ESLINT MONOREPO CONFIGURATION =====
-    "eslint.workingDirectories": [
-      "apps/api",
-      "apps/web", 
-      "packages/providers",
-      "packages/db"
-    ],
+    "eslint.workingDirectories": ["apps/api", "apps/web", "packages/providers", "packages/db"],
     "eslint.validate": ["typescript", "javascript", "typescriptreact", "javascriptreact"],
-    
+
     // ===== JEST MONOREPO CONFIGURATION =====
     "jest.jestCommandLine": "npm test --",
     "jest.autoRun": "off",
     "jest.showCoverageOnLoad": false,
     "jest.autoRevealOutput": "on-exec-error",
-    
+
     // ===== PRISMA CONFIGURATION =====
     "prisma.schemaPath": "packages/db/prisma/schema.prisma",
     "prisma.clientPath": "packages/db/node_modules/@prisma/client",
-    
+
     // ===== DOCKER CONFIGURATION =====
     "docker.composeCommand": "docker-compose",
     "docker.dockerComposeFile": "docker-compose.yml",
-    
+
     // ===== WORKSPACE-SPECIFIC FORMATTING =====
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": "explicit",
       "source.organizeImports": "explicit"
     },
-    
+
     // ===== TERMINAL CONFIGURATION =====
     "terminal.integrated.cwd": "${workspaceFolder}",
     "terminal.integrated.defaultProfile.linux": "bash",
-    
+
     // ===== EXPLORER CONFIGURATION =====
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
@@ -104,13 +99,14 @@
       "README.md": "*.md,CHANGELOG*,LICENSE*",
       ".env": ".env.*",
       "schema.prisma": "migrations/**"
-    }
+    },
+    "containers.composeCommand": "docker-compose"
   },
-  
+
   "extensions": {
     "recommendations": [
       "dbaeumer.vscode-eslint",
-      "esbenp.prettier-vscode", 
+      "esbenp.prettier-vscode",
       "ms-vscode.vscode-typescript-next",
       "prisma.prisma",
       "ms-azuretools.vscode-docker",
@@ -120,11 +116,9 @@
       "eamodio.gitlens",
       "github.vscode-pull-request-github"
     ],
-    "unwantedRecommendations": [
-      "ms-vscode.vscode-typescript"
-    ]
+    "unwantedRecommendations": ["ms-vscode.vscode-typescript"]
   },
-  
+
   "tasks": {
     "version": "2.0.0",
     "tasks": [
@@ -143,7 +137,7 @@
       },
       {
         "label": "🧪 Run All Tests",
-        "type": "shell", 
+        "type": "shell",
         "command": "pnpm test",
         "group": "test",
         "presentation": {
@@ -208,7 +202,7 @@
       }
     ]
   },
-  
+
   "launch": {
     "version": "0.2.0",
     "configurations": [

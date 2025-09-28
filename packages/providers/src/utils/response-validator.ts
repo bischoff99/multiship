@@ -68,7 +68,7 @@ export const ApiResponseSchemas = {
   // Provider health response
   providerHealth: z.object({
     timestamp: z.number(),
-    providers: z.record(z.boolean())
+    providers: z.record(z.string(), z.boolean())
   }),
 
   // Metrics response
@@ -81,7 +81,7 @@ export const ApiResponseSchemas = {
   dashboard: z.object({
     timestamp: z.number(),
     timeRange: z.string(),
-    widgets: z.record(z.any()),
+    widgets: z.record(z.string(), z.any()),
     summary: z.object({
       totalRequests: z.number(),
       successfulRequests: z.number(),
@@ -123,7 +123,7 @@ export class ResponseValidator {
       if (error instanceof z.ZodError) {
         return {
           success: false,
-          errors: error.errors.map(err => `${err.path.join('.')}: ${err.message}`)
+          errors: error.issues.map(err => `${err.path.join('.')}: ${err.message}`)
         };
       }
 
@@ -271,7 +271,7 @@ export class ResponseValidator {
       return ShipmentInput.parse(input);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(`Invalid shipment input: ${error.errors.map(e => e.message).join(', ')}`);
+        throw new Error(`Invalid shipment input: ${error.issues.map(e => e.message).join(', ')}`);
       }
       throw error;
     }
@@ -355,7 +355,7 @@ export function createValidationMiddleware<T>(schema: z.ZodSchema<T>) {
       if (error instanceof z.ZodError) {
         res.code(400).send(ResponseValidator.createErrorResponse(
           'Validation Error',
-          error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
+          error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
           req.correlationId
         ));
         return;

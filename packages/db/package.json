@@ -2,13 +2,17 @@
   "name": "@pkg/db",
   "version": "0.0.1",
   "type": "module",
+  "main": "dist/client.js",
+  "exports": {
+    ".": "./dist/client.js"
+  },
   "dependencies": {
-    "@prisma/client": "^5.18.0"
+    "@prisma/client": "^6.16.2"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "prisma": "^5.18.0",
-    "typescript": "^5.5.4"
+    "@types/node": "^24.5.2",
+    "prisma": "^6.16.2",
+    "typescript": "^5.9.2"
   },
   "scripts": {
     "dev": "tsc -w",

@@ -253,6 +253,88 @@ export class ValidationError extends ProviderError {
   }
 }
 
+export class CacheError extends ProviderError {
+  public readonly cacheKey?: string;
+  public readonly cacheOperation?: string;
+
+  constructor(
+    message: string,
+    provider: string,
+    operation: string,
+    cacheKey?: string,
+    cacheOperation?: string,
+    context?: LogContext
+  ) {
+    super(message, provider, operation, true, undefined, undefined, context);
+    this.cacheKey = cacheKey;
+    this.cacheOperation = cacheOperation;
+  }
+
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      cacheKey: this.cacheKey,
+      cacheOperation: this.cacheOperation
+    };
+  }
+}
+
+export class QuotaExceededError extends ProviderError {
+  public readonly quotaType?: string;
+  public readonly limit?: number;
+  public readonly current?: number;
+
+  constructor(
+    message: string,
+    provider: string,
+    operation: string,
+    quotaType?: string,
+    limit?: number,
+    current?: number,
+    context?: LogContext
+  ) {
+    super(message, provider, operation, false, 429, undefined, context);
+    this.quotaType = quotaType;
+    this.limit = limit;
+    this.current = current;
+  }
+
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      quotaType: this.quotaType,
+      limit: this.limit,
+      current: this.current
+    };
+  }
+}
+
+export class ServiceUnavailableError extends ProviderError {
+  public readonly retryAfter?: number;
+  public readonly serviceStatus?: string;
+
+  constructor(
+    message: string,
+    provider: string,
+    operation: string,
+    retryAfter?: number,
+    serviceStatus?: string,
+    context?: LogContext
+  ) {
+    super(message, provider, operation, true, 503, undefined, context);
+    this.retryAfter = retryAfter;
+    this.serviceStatus = serviceStatus;
+  }
+
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      retryAfter: this.retryAfter,
+      serviceStatus: this.serviceStatus
+    };
+  }
+}
+
 // Error classification utilities
 export function classifyError(error: any, provider: string, operation: string, context?: LogContext): ProviderError {
   // If it's already a ProviderError, return as-is
@@ -275,11 +357,50 @@ export function classifyError(error: any, provider: string, operation: string, c
 
   // Handle timeout errors
   if (error.message && error.message.includes('timeout')) {
+    const timeoutMatch = error.message.match(/(\d+)/);
+    const timeoutMs = timeoutMatch ? parseInt(timeoutMatch[1]) : 30000;
     return new TimeoutError(
       'Request timeout',
       provider,
       operation,
-      30000, // Default timeout
+      timeoutMs,
+      context
+    );
+  }
+
+  // Handle cache-related errors
+  if (error.message && (error.message.includes('cache') || error.message.includes('Cache'))) {
+    return new CacheError(
+      error.message,
+      provider,
+      operation,
+      context?.cacheKey,
+      context?.cacheOperation,
+      context
+    );
+  }
+
+  // Handle quota exceeded errors
+  if (error.message && (error.message.includes('quota') || error.message.includes('limit exceeded'))) {
+    return new QuotaExceededError(
+      error.message,
+      provider,
+      operation,
+      context?.quotaType,
+      context?.limit,
+      context?.current,
+      context
+    );
+  }
+
+  // Handle service unavailable errors
+  if (error.message && (error.message.includes('service unavailable') || error.message.includes('maintenance'))) {
+    return new ServiceUnavailableError(
+      error.message,
+      provider,
+      operation,
+      context?.retryAfter,
+      context?.serviceStatus,
       context
     );
   }
@@ -292,6 +413,18 @@ export function classifyError(error: any, provider: string, operation: string, c
       error,
       provider,
       operation,
+      context
+    );
+  }
+
+  // Handle validation errors
+  if (error.message && (error.message.includes('validation') || error.message.includes('invalid'))) {
+    return new ValidationError(
+      error.message,
+      provider,
+      operation,
+      context?.field,
+      context?.value,
       context
     );
   }

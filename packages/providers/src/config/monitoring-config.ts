@@ -46,7 +46,7 @@ export const MonitoringConfig = z.object({
     // Webhook configuration
     webhook: z.object({
       url: z.string().optional(),
-      headers: z.record(z.string()).optional(),
+      headers: z.record(z.string(), z.string()).optional(),
       timeout: z.number().default(5000),
     }),
 

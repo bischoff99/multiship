@@ -8,6 +8,11 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@pkg/providers": ["packages/providers/src/index.ts"],
+      "@pkg/db": ["packages/db/src/client.ts"]
+    }
   }
 }
