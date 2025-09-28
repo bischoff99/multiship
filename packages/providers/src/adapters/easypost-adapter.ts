@@ -4,7 +4,7 @@ import { MemoryCache } from '../cache/memory-cache.js';
 import { RedisCache } from '../cache/redis-cache.js';
 import { Cacheable, CacheInvalidate, CacheUtils } from '../cache/cache-decorator.js';
 import { cacheConfig, CacheConfigUtils } from '../config/cache-config.js';
-import { Logger, LogLevel } from '../utils/logger.js';
+import { Logger, LogLevel, ConsoleDestination } from '../utils/logger.js';
 import { CircuitBreaker } from '../utils/circuit-breaker.js';
 import {
   ProviderError,
@@ -38,7 +38,7 @@ export class EasyPostAdapter implements ProviderAdapter {
     // Initialize logger with provider-specific configuration
     this.logger = new Logger(
       this.config.logLevel,
-      [new (require('../utils/logger.js').ConsoleDestination)()],
+      [new ConsoleDestination()],
       { provider: this.name }
     );
 

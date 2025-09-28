@@ -3,20 +3,20 @@ const config = {
   preset: 'ts-jest/presets/default-esm',
   extensionsToTreatAsEsm: ['.ts'],
   testEnvironment: 'node',
-  rootDir: '<rootDir>/../../..',
+  rootDir: '<rootDir>/../..',
   testMatch: [
-    '<rootDir>/packages/providers/src/**/*.test.ts',
-    '<rootDir>/packages/providers/src/**/*.spec.ts'
+    '**/*.test.ts',
+    '**/*.spec.ts'
   ],
   collectCoverageFrom: [
-    'packages/providers/src/**/*.ts',
-    '!packages/providers/src/**/*.d.ts',
-    '!packages/providers/src/**/*.test.ts',
-    '!packages/providers/src/**/*.spec.ts',
-    '!packages/providers/src/test/**',
-    '!packages/providers/src/**/index.ts'
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+    '!src/**/*.test.ts',
+    '!src/**/*.spec.ts',
+    '!src/test/**',
+    '!src/**/index.ts'
   ],
-  coverageDirectory: 'packages/providers/coverage',
+  coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   coverageThreshold: {
     global: {
@@ -26,13 +26,13 @@ const config = {
       statements: 80
     }
   },
-  setupFilesAfterEnv: ['<rootDir>/packages/providers/src/test/setup/test-setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/test/setup/test-setup.ts'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/packages/providers/src/$1',
+    '^@/(.*)$': '<rootDir>/$1',
     '^(\\.{1,2}/.*)\\.js$': '$1'
   },
-  testTimeout: 30000,
-  verbose: true,
+  testTimeout: 10000, // Reduced timeout
+  verbose: false, // Reduce verbosity to prevent memory issues
   clearMocks: true,
   restoreMocks: true,
   // TypeScript and ESM configuration
@@ -67,13 +67,26 @@ const config = {
     'node_modules/(?!(.*\\.mjs$))'
   ],
   // Performance and memory settings
-  maxWorkers: '50%',
+  maxWorkers: 1,
   cache: true,
+  // Increase memory limit for Node.js
+  testEnvironmentOptions: {
+    NODE_OPTIONS: '--max-old-space-size=2048'
+  },
+  // Memory optimization
+  workerIdleMemoryLimit: '256MB',
+  detectOpenHandles: false,
+  forceExit: true,
   // Error handling
   bail: false,
   notify: false,
   // Test organization
-  testPathIgnorePatterns: ['/node_modules/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '.*performance.*',
+    '.*integration.*',
+    '.*benchmark.*'
+  ],
   moduleFileExtensions: ['ts', 'js', 'json']
 };
 

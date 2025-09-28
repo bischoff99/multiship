@@ -9,36 +9,7 @@ import { z } from 'zod';
 
 export default async function health(app: FastifyInstance) {
   // Overall system health
-  app.get(
-    '/health',
-    {
-      schema: {
-        description: 'Get overall system health status',
-        tags: ['Health'],
-        summary: 'System health check',
-        response: {
-          200: z.object({
-            status: z.enum(['healthy', 'degraded', 'unhealthy']),
-            timestamp: z.number(),
-            uptime: z.number(),
-            version: z.string(),
-            summary: z.object({
-              providers: z.number(),
-              healthyProviders: z.number(),
-              cacheHitRate: z.number(),
-              averageResponseTime: z.number(),
-            }),
-          }),
-          503: z.object({
-            status: z.string(),
-            timestamp: z.number(),
-            error: z.string(),
-            uptime: z.number(),
-          }),
-        },
-      },
-    },
-    async () => {
+  app.get('/health', async () => {
       try {
         // Simple health check for now
         return {
@@ -144,20 +115,20 @@ export default async function health(app: FastifyInstance) {
     }
   });
 
-  // Prometheus-style metrics endpoint
-  app.get('/metrics', async () => {
-    try {
-      return {
-        contentType: 'text/plain; version=0.0.4; charset=utf-8',
-        body: '# Metrics not available yet',
-      };
-    } catch (error) {
-      return {
-        contentType: 'text/plain; charset=utf-8',
-        body: `# Error generating metrics: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      };
-    }
-  });
+  // Prometheus-style metrics endpoint (moved to metrics.ts)
+  // app.get('/metrics', async () => {
+  //   try {
+  //     return {
+  //       contentType: 'text/plain; version=0.0.4; charset=utf-8',
+  //       body: '# Metrics not available yet',
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       contentType: 'text/plain; charset=utf-8',
+  //       body: `# Error generating metrics: ${error instanceof Error ? error.message : 'Unknown error'}`,
+  //     };
+  //   }
+  // });
 
   // Readiness probe
   app.get('/health/ready', async () => {

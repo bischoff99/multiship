@@ -116,27 +116,104 @@ export default async function shipments(app: FastifyInstance, opts: any) {
   });
 
   // Quote endpoint
-  app.post(
-    '/shipments/quote',
-    {
-      schema: {
-        description: 'Get shipping rate quotes from all enabled providers',
-        tags: ['Shipments'],
-        summary: 'Get shipping quotes',
-        body: QuoteRequestSchema,
-        response: {
-          200: SuccessResponseSchema(z.object({
-            rates: z.array(RateQuoteSchema),
-            providers: z.array(z.string()),
-            totalQuotes: z.number(),
-            cacheHit: z.boolean().optional(),
-          })),
-          400: ErrorResponseSchema,
-          401: ErrorResponseSchema,
-          500: ErrorResponseSchema,
-        },
+  app.post('/shipments/quote', {
+    schema: {
+      description: 'Get shipping quotes from all providers',
+      tags: ['Shipments'],
+      summary: 'Get shipping quotes',
+      body: {
+        type: 'object',
+        required: ['to', 'from', 'parcel'],
+        properties: {
+          to: {
+            type: 'object',
+            required: ['street1', 'city', 'zip', 'country'],
+            properties: {
+              name: { type: 'string' },
+              company: { type: 'string' },
+              street1: { type: 'string' },
+              street2: { type: 'string' },
+              city: { type: 'string' },
+              state: { type: 'string' },
+              zip: { type: 'string' },
+              country: { type: 'string', minLength: 2, maxLength: 2 },
+              phone: { type: 'string' },
+              email: { type: 'string' }
+            }
+          },
+          from: {
+            type: 'object',
+            required: ['street1', 'city', 'zip', 'country'],
+            properties: {
+              name: { type: 'string' },
+              company: { type: 'string' },
+              street1: { type: 'string' },
+              street2: { type: 'string' },
+              city: { type: 'string' },
+              state: { type: 'string' },
+              zip: { type: 'string' },
+              country: { type: 'string', minLength: 2, maxLength: 2 },
+              phone: { type: 'string' },
+              email: { type: 'string' }
+            }
+          },
+          parcel: {
+            type: 'object',
+            required: ['length', 'width', 'height', 'weight'],
+            properties: {
+              length: { type: 'number' },
+              width: { type: 'number' },
+              height: { type: 'number' },
+              weight: { type: 'number' },
+              distance_unit: { type: 'string', enum: ['in', 'cm'] },
+              mass_unit: { type: 'string', enum: ['oz', 'lb', 'g', 'kg'] }
+            }
+          },
+          reference: { type: 'string' },
+          veeqo: {
+            type: 'object',
+            properties: {
+              allocationId: { type: 'number' }
+            }
+          }
+        }
       },
-    },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                rates: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      provider: { type: 'string', enum: ['easypost', 'shippo', 'veeqo'] },
+                      rateId: { type: 'string' },
+                      shipmentId: { type: 'string' },
+                      service: { type: 'string' },
+                      carrier: { type: 'string' },
+                      amount: { type: 'number' },
+                      currency: { type: 'string' },
+                      estDeliveryDays: { type: 'number', nullable: true }
+                    }
+                  }
+                },
+                providers: { type: 'array', items: { type: 'string' } },
+                totalQuotes: { type: 'number' },
+                cacheHit: { type: 'boolean' }
+              }
+            },
+            timestamp: { type: 'string' },
+            correlationId: { type: 'string' }
+          }
+        }
+      }
+    }
+  },
     async (req, res) => {
       const correlationId = req.headers['x-correlation-id'] as string || 
                            `quote-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -163,22 +240,45 @@ export default async function shipments(app: FastifyInstance, opts: any) {
   );
 
   // Purchase endpoint
-  app.post(
-    '/shipments/purchase',
-    {
-      schema: {
-        description: 'Purchase shipping label from a specific provider',
-        tags: ['Shipments'],
-        summary: 'Purchase shipping label',
-        body: PurchaseRequestSchema,
-        response: {
-          200: SuccessResponseSchema(PurchaseResultSchema),
-          400: ErrorResponseSchema,
-          401: ErrorResponseSchema,
-          500: ErrorResponseSchema,
-        },
+  app.post('/shipments/purchase', {
+    schema: {
+      description: 'Purchase a shipping label',
+      tags: ['Shipments'],
+      summary: 'Purchase shipping label',
+      body: {
+        type: 'object',
+        required: ['provider', 'rateId'],
+        properties: {
+          provider: { type: 'string', enum: ['easypost', 'shippo', 'veeqo'] },
+          rateId: { type: 'string' },
+          shipmentId: { type: 'string' },
+          allocationId: { type: 'number' },
+          serviceType: { type: 'string' },
+          subCarrierId: { type: 'string' }
+        }
       },
-    },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                provider: { type: 'string', enum: ['easypost', 'shippo', 'veeqo'] },
+                shipmentId: { type: 'string' },
+                labelUrl: { type: 'string', nullable: true },
+                trackingCode: { type: 'string', nullable: true },
+                trackingUrl: { type: 'string', nullable: true }
+              }
+            },
+            timestamp: { type: 'string' },
+            correlationId: { type: 'string' }
+          }
+        }
+      }
+    }
+  },
     async (req, res) => {
       const correlationId = req.headers['x-correlation-id'] as string || 
                            `purchase-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -200,24 +300,7 @@ export default async function shipments(app: FastifyInstance, opts: any) {
   );
 
   // Health check endpoint
-  app.get(
-    '/shipments/health',
-    {
-      schema: {
-        description: 'Check health status of all shipping providers',
-        tags: ['Health'],
-        summary: 'Provider health check',
-        response: {
-          200: SuccessResponseSchema(z.object({
-            providers: z.record(z.string(), z.boolean()),
-            overall: z.boolean(),
-            timestamp: z.string(),
-          })),
-          401: ErrorResponseSchema,
-          500: ErrorResponseSchema,
-        },
-      },
-    },
+  app.get('/shipments/health',
     async (req, res) => {
       const correlationId = req.headers['x-correlation-id'] as string || 
                            `health-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -244,26 +327,7 @@ export default async function shipments(app: FastifyInstance, opts: any) {
   );
 
   // Provider status endpoint
-  app.get(
-    '/shipments/providers',
-    {
-      schema: {
-        description: 'Get information about available shipping providers',
-        tags: ['Providers'],
-        summary: 'List providers',
-        response: {
-          200: SuccessResponseSchema(z.object({
-            providers: z.array(z.object({
-              name: z.string(),
-              enabled: z.boolean(),
-              status: z.enum(['healthy', 'unhealthy', 'unknown']),
-            })),
-          })),
-          401: ErrorResponseSchema,
-          500: ErrorResponseSchema,
-        },
-      },
-    },
+  app.get('/shipments/providers',
     async (req, res) => {
       const correlationId = req.headers['x-correlation-id'] as string || 
                            `providers-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

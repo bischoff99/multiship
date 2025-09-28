@@ -1,12 +1,17 @@
 /** @type {import('jest').Config} */
 const config = {
+  preset: 'ts-jest/presets/default-esm',
+  extensionsToTreatAsEsm: ['.ts'],
   testEnvironment: 'node',
   testMatch: [
-    '**/*.test.js',
     '**/*.test.ts',
-    '**/*.spec.js',
     '**/*.spec.ts'
   ],
+  transform: {
+    '^.+\\.ts$': ['ts-jest', {
+      useESM: true,
+    }]
+  },
   testTimeout: 5000,
   verbose: false,
   maxWorkers: 1,

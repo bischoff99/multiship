@@ -1,5 +1,5 @@
 import { ProviderAdapter, ShipmentInput, RateQuote, PurchaseResult, CircuitBreakerState } from '../types.js';
-import { Logger, LogLevel } from '../utils/logger.js';
+import { Logger, LogLevel, ConsoleDestination } from '../utils/logger.js';
 import {
   ProviderError,
   NetworkError,
@@ -36,7 +36,7 @@ export class VeeqoAdapter implements ProviderAdapter {
     // Initialize logger with provider-specific configuration
     this.logger = new Logger(
       this.config.logLevel,
-      [new (require('../utils/logger.js').ConsoleDestination)()],
+      [new ConsoleDestination()],
       { provider: this.name }
     );
 

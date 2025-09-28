@@ -1,9 +1,9 @@
-import ShippoSDK from 'shippo';
+import { Shippo } from 'shippo';
 import { ProviderAdapter, ShipmentInput, RateQuote, PurchaseResult, CircuitBreakerState } from '../types.js';
 import { MemoryCache } from '../cache/memory-cache.js';
 import { RedisCache } from '../cache/redis-cache.js';
 import { cacheConfig, CacheConfigUtils } from '../config/cache-config.js';
-import { Logger, LogLevel } from '../utils/logger.js';
+import { Logger, LogLevel, ConsoleDestination } from '../utils/logger.js';
 import { CircuitBreaker } from '../utils/circuit-breaker.js';
 import {
   ProviderError,
@@ -21,7 +21,7 @@ import { getProviderConfig } from '../config/provider-config.js';
 export class ShippoAdapter implements ProviderAdapter {
   readonly name = 'shippo';
   readonly enabled: boolean;
-  private client: any;
+  private client: Shippo;
   private cache: any;
   private circuitBreaker: CircuitBreaker;
   private config: any;
@@ -32,12 +32,15 @@ export class ShippoAdapter implements ProviderAdapter {
     const apiKey = process.env.SHIPPO_API_KEY;
     this.enabled = Boolean(apiKey) && this.config.enabled;
 
-    this.client = new (ShippoSDK as any)(apiKey!);
+    // Initialize Shippo client
+    this.client = new Shippo({
+      apiKeyHeader: apiKey!
+    });
 
     // Initialize logger with provider-specific configuration
     this.logger = new Logger(
       this.config.logLevel,
-      [new (require('../utils/logger.js').ConsoleDestination)()],
+      [new ConsoleDestination()],
       { provider: this.name }
     );
 
@@ -55,6 +58,8 @@ export class ShippoAdapter implements ProviderAdapter {
       circuitBreakerState: this.circuitBreaker.getState().state
     });
   }
+
+
 
   /**
    * Initialize cache instance based on configuration
@@ -205,36 +210,36 @@ export class ShippoAdapter implements ProviderAdapter {
   private async getFreshQuote(input: ShipmentInput, correlationId: string, logger: any): Promise<RateQuote[]> {
     logger.debug('Creating shipment for rate quote', { correlationId });
 
-    const shipment = await this.client.shipment.create({
-      address_from: input.from,
-      address_to: input.to,
+    const shipment = await this.client.shipments.create({
+      addressFrom: input.from,
+      addressTo: input.to,
       parcels: [{
         length: String(input.parcel.length),
         width: String(input.parcel.width),
         height: String(input.parcel.height),
-        distance_unit: input.parcel.distance_unit ?? 'in',
         weight: String(input.parcel.weight),
-        mass_unit: input.parcel.mass_unit ?? 'oz'
+        massUnit: input.parcel.mass_unit ?? 'oz',
+        distanceUnit: input.parcel.distance_unit ?? 'in'
       }],
       async: false
     });
 
     logger.debug('Shipment created, processing rates', {
       correlationId,
-      shipmentId: shipment.object_id,
-      ratesCount: (shipment.rates ?? shipment.rates_list ?? []).length
+      shipmentId: shipment.objectId,
+      ratesCount: (shipment.rates ?? []).length
     });
 
-    const rates = shipment.rates ?? shipment.rates_list ?? [];
+    const rates = shipment.rates ?? [];
     return rates.map((r: any) => ({
       provider: 'shippo' as const,
-      rateId: r.object_id,
-      shipmentId: shipment.object_id,
+      rateId: r.objectId,
+      shipmentId: shipment.objectId,
       service: r.servicelevel?.name ?? r.servicelevel?.token ?? r.servicelevel,
       carrier: r.provider ?? r.carrier,
       amount: Math.round(Number(r.amount) * 100),
       currency: r.currency,
-      estDeliveryDays: r.estimated_days ?? null
+      estDeliveryDays: r.estimatedDays ?? null
     }));
   }
 
@@ -245,7 +250,7 @@ export class ShippoAdapter implements ProviderAdapter {
     logger.info('Purchasing shipment', { correlationId, rateId, shipmentId });
 
     const result = await this.executeWithRetry(async () => {
-      const tx = await this.client.transaction.create({
+      const tx = await this.client.transactions.create({
         rate: rateId,
         async: false
       });
@@ -268,9 +273,9 @@ export class ShippoAdapter implements ProviderAdapter {
 
       return {
         provider: 'shippo' as const,
-        shipmentId: tx.shipment,
-        labelUrl: tx.label_url,
-        trackingCode: tx.tracking_number
+        shipmentId: tx.parcel || '',
+        labelUrl: tx.labelUrl || null,
+        trackingCode: tx.trackingNumber || null
       };
     });
 
@@ -338,7 +343,7 @@ export class ShippoAdapter implements ProviderAdapter {
   private async performHealthCheck(correlationId: string, logger: any): Promise<boolean> {
     try {
       // Simple API call to check if service is responsive
-      await this.client.address.create({
+      await this.client.addresses.create({
         name: 'Test',
         street1: 'Test St',
         city: 'Test City',

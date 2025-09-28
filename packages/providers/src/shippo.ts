@@ -1,47 +1,49 @@
-import * as ShippoSDK from 'shippo';
+import { Shippo } from 'shippo';
 import type { PurchaseResult, RateQuote, ShipmentInput } from './types.js';
 
-const shippo = new (ShippoSDK as any).default(process.env.SHIPPO_API_KEY!);
+const shippo = new Shippo({
+  apiKeyHeader: process.env.SHIPPO_API_KEY!
+});
 
 export async function spQuote(input: ShipmentInput): Promise<RateQuote[]> {
-  const shipment = await shippo.shipment.create({
-    address_from: input.from,
-    address_to: input.to,
+  const shipment = await shippo.shipments.create({
+    addressFrom: input.from,
+    addressTo: input.to,
     parcels: [
       {
         length: String(input.parcel.length),
         width: String(input.parcel.width),
         height: String(input.parcel.height),
-        distance_unit: input.parcel.distance_unit ?? 'in',
+        distanceUnit: input.parcel.distance_unit ?? 'in',
         weight: String(input.parcel.weight),
-        mass_unit: input.parcel.mass_unit ?? 'oz',
+        massUnit: input.parcel.mass_unit ?? 'oz',
       },
     ],
     async: false,
   });
-  const rates = shipment.rates ?? shipment.rates_list ?? [];
+  const rates = shipment.rates ?? [];
   return rates.map((r: any) => ({
     provider: 'shippo',
-    rateId: r.object_id,
-    shipmentId: shipment.object_id,
+    rateId: r.objectId,
+    shipmentId: shipment.objectId,
     service: r.servicelevel?.name ?? r.servicelevel?.token ?? r.servicelevel,
     carrier: r.provider ?? r.carrier,
     amount: Math.round(Number(r.amount) * 100),
     currency: r.currency,
-    estDeliveryDays: r.estimated_days ?? null,
+    estDeliveryDays: r.estimatedDays ?? null,
   }));
 }
 
 export async function spBuy(rateId: string): Promise<PurchaseResult> {
-  const tx = await shippo.transaction.create({
+  const tx = await shippo.transactions.create({
     rate: rateId,
     async: false,
   });
   if (tx.status !== 'SUCCESS') throw new Error(`Shippo purchase failed: ${tx.status}`);
   return {
     provider: 'shippo',
-    shipmentId: tx.shipment,
-    labelUrl: tx.label_url,
-    trackingCode: tx.tracking_number,
+    shipmentId: tx.parcel ?? tx.objectId ?? 'unknown',
+    labelUrl: tx.labelUrl ?? null,
+    trackingCode: tx.trackingNumber ?? null,
   };
 }

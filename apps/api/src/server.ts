@@ -14,40 +14,40 @@ const app = Fastify({
   bodyLimit: 1048576, // 1MB
 });
 
-// Register Swagger/OpenAPI documentation
-app.register(import('@fastify/swagger'), {
-  openapi: {
-    info: {
-      title: 'Multiship API',
-      description: 'Provider-agnostic shipping API with EasyPost, Shippo, and Veeqo adapters',
-      version: '1.0.0',
-    },
-    servers: [
-      {
-        url: 'http://localhost:4000',
-        description: 'Development server'
-      }
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer'
-        }
-      }
-    }
-  }
-});
+// Register Swagger/OpenAPI documentation (temporarily disabled for testing)
+// app.register(import('@fastify/swagger'), {
+//   openapi: {
+//     info: {
+//       title: 'Multiship API',
+//       description: 'Provider-agnostic shipping API with EasyPost, Shippo, and Veeqo adapters',
+//       version: '1.0.0',
+//     },
+//     servers: [
+//       {
+//         url: 'http://localhost:4000',
+//         description: 'Development server'
+//       }
+//     ],
+//     components: {
+//       securitySchemes: {
+//         bearerAuth: {
+//           type: 'http',
+//           scheme: 'bearer'
+//         }
+//       }
+//     }
+//   }
+// });
 
-app.register(import('@fastify/swagger-ui'), {
-  routePrefix: '/docs',
-  uiConfig: {
-    docExpansion: 'full',
-    deepLinking: false
-  },
-  staticCSP: true,
-  transformSpecificationClone: true
-});
+// app.register(import('@fastify/swagger-ui'), {
+//   routePrefix: '/docs',
+//   uiConfig: {
+//     docExpansion: 'full',
+//     deepLinking: false
+//   },
+//   staticCSP: true,
+//   transformSpecificationClone: true
+// });
 
 // Register routes
 app.register(health);

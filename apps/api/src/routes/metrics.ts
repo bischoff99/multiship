@@ -33,18 +33,7 @@ const HealthResponseSchema = z.object({
 
 export default async function metrics(app: FastifyInstance, opts: any) {
   // Metrics endpoint
-  app.get(
-    '/metrics',
-    {
-      schema: {
-        description: 'Get system and provider metrics',
-        tags: ['Metrics'],
-        summary: 'System metrics',
-        response: {
-          200: MetricsResponseSchema
-        }
-      }
-    },
+  app.get('/metrics',
     async (req, res) => {
       try {
         // Get provider metrics
@@ -94,18 +83,7 @@ export default async function metrics(app: FastifyInstance, opts: any) {
   );
 
   // Health check endpoint with detailed metrics
-  app.get(
-    '/health/detailed',
-    {
-      schema: {
-        description: 'Get detailed health status with metrics',
-        tags: ['Health'],
-        summary: 'Detailed health check',
-        response: {
-          200: HealthResponseSchema
-        }
-      }
-    },
+  app.get('/health/detailed',
     async (req, res) => {
       try {
         // Check database health
@@ -150,15 +128,7 @@ export default async function metrics(app: FastifyInstance, opts: any) {
   );
 
   // Prometheus metrics endpoint
-  app.get(
-    '/metrics/prometheus',
-    {
-      schema: {
-        description: 'Get metrics in Prometheus format',
-        tags: ['Metrics'],
-        summary: 'Prometheus metrics'
-      }
-    },
+  app.get('/metrics/prometheus',
     async (req, res) => {
       try {
         const metricsCollector = MetricsCollector.getInstance();
@@ -173,15 +143,7 @@ export default async function metrics(app: FastifyInstance, opts: any) {
   );
 
   // Metrics reset endpoint (for testing)
-  app.post(
-    '/metrics/reset',
-    {
-      schema: {
-        description: 'Reset metrics (testing only)',
-        tags: ['Metrics'],
-        summary: 'Reset metrics'
-      }
-    },
+  app.post('/metrics/reset',
     async (req, res) => {
       try {
         if (process.env.NODE_ENV === 'production') {

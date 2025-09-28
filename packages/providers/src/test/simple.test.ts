@@ -1,17 +1,18 @@
-// Jest globals are available in test environment
+// Simple test to verify Jest configuration
+import { describe, it, expect } from '@jest/globals';
 
-describe('Environment Setup Test', () => {
-  it('should verify Jest configuration is working', () => {
-    expect(true).toBe(true);
+describe('Jest Configuration Test', () => {
+  it('should run basic tests', () => {
+    expect(1 + 1).toBe(2);
   });
 
-  it('should verify TypeScript compilation', () => {
-    const testValue: string = 'Hello, Multiship!';
-    expect(testValue).toBe('Hello, Multiship!');
+  it('should handle async operations', async () => {
+    const result = await Promise.resolve('test');
+    expect(result).toBe('test');
   });
 
-  it('should verify ES modules are working', async () => {
-    const module = await import('../types.js');
-    expect(module).toBeDefined();
+  it('should have environment variables set', () => {
+    expect(process.env.NODE_ENV).toBe('test');
+    expect(process.env.EASYPOST_API_KEY).toBe('test_easypost_key');
   });
 });
