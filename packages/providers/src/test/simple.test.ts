@@ -1,5 +1,5 @@
 // Simple test to verify Jest configuration
-import { describe, it, expect } from '@jest/globals';
+// Jest globals (describe, it, expect) are available without imports
 
 describe('Jest Configuration Test', () => {
   it('should run basic tests', () => {
