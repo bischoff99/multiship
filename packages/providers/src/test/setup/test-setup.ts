@@ -1,5 +1,5 @@
 // Test setup file to configure Jest environment
-import { jest } from '@jest/globals';
+// Jest globals are available without imports
 
 // Reduce console output during tests
 const originalConsole = global.console;
