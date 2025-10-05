@@ -1,33 +1,34 @@
 // Test setup file to configure Jest environment
 // Jest globals are available without imports
 
-// Reduce console output during tests
-const originalConsole = global.console;
-global.console = {
-  ...originalConsole,
-  log: jest.fn(),
-  debug: jest.fn(),
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-};
-
-// Mock environment variables
+// Mock environment variables for testing
 process.env.NODE_ENV = 'test';
 process.env.EASYPOST_API_KEY = 'test_easypost_key';
 process.env.SHIPPO_API_KEY = 'test_shippo_key';
 process.env.VEEQO_API_KEY = 'test_veeqo_key';
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/multiship_test';
+process.env.REDIS_URL = 'redis://localhost:6379';
 
 // Global test timeout
 jest.setTimeout(10000);
 
-// Clean up after each test
+// Global error handling for unhandled promises
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Global cleanup after each test
 afterEach(() => {
+  // Clear all timers
+  jest.clearAllTimers();
+  
+  // Clear all mocks
   jest.clearAllMocks();
 });
 
 // Global teardown
 afterAll(() => {
-  // Restore original console
-  global.console = originalConsole;
+  // Final cleanup
+  jest.clearAllTimers();
+  jest.clearAllMocks();
 });
