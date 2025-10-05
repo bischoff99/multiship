@@ -30,12 +30,6 @@ describe('CircuitBreaker', () => {
       },
       logger
     );
-
-    TestTimeUtils.resetTime();
-  });
-
-  afterEach(() => {
-    TestTimeUtils.resetTime();
   });
 
   describe('Initial State', () => {
@@ -108,7 +102,9 @@ describe('CircuitBreaker', () => {
     });
 
     it('should transition to HALF_OPEN after recovery timeout', () => {
-      TestTimeUtils.advanceTime(1001); // Just over recovery timeout
+      // Advance time past recovery timeout
+      jest.advanceTimersByTime(1001); // Just over recovery timeout
+      
       expect(circuitBreaker.canExecute()).toBe(true);
       expect(circuitBreaker.getState().state).toBe('HALF_OPEN');
       expect(mockLogger.logCircuitBreaker).toHaveBeenCalledWith(
@@ -118,7 +114,9 @@ describe('CircuitBreaker', () => {
     });
 
     it('should not transition to HALF_OPEN before recovery timeout', () => {
-      TestTimeUtils.advanceTime(999); // Just under recovery timeout
+      // Advance time but not enough
+      jest.advanceTimersByTime(999); // Just under recovery timeout
+      
       expect(circuitBreaker.canExecute()).toBe(false);
       expect(circuitBreaker.getState().state).toBe('OPEN');
     });
@@ -132,7 +130,7 @@ describe('CircuitBreaker', () => {
       circuitBreaker.onFailure();
       
       // Then advance time to trigger HALF_OPEN
-      TestTimeUtils.advanceTime(1001);
+      jest.advanceTimersByTime(1001);
     });
 
     it('should allow limited execution in HALF_OPEN state', () => {
@@ -154,7 +152,7 @@ describe('CircuitBreaker', () => {
       circuitBreaker.onFailure();
       circuitBreaker.onFailure();
       circuitBreaker.onFailure();
-      TestTimeUtils.advanceTime(1001);
+      jest.advanceTimersByTime(1001);
 
       // Make successful calls
       circuitBreaker.onSuccess();
@@ -190,7 +188,7 @@ describe('CircuitBreaker', () => {
       circuitBreaker.onFailure();
       circuitBreaker.onFailure();
       circuitBreaker.onFailure();
-      TestTimeUtils.advanceTime(1001);
+      jest.advanceTimersByTime(1001);
 
       // First call should be allowed
       expect(circuitBreaker.canExecute()).toBe(true);
@@ -309,7 +307,7 @@ describe('CircuitBreaker', () => {
       expect(circuitBreaker.getState().failures).toBe(10);
 
       // Advance time and test recovery
-      TestTimeUtils.advanceTime(1001);
+      jest.advanceTimersByTime(1001);
       expect(circuitBreaker.canExecute()).toBe(true);
     });
 

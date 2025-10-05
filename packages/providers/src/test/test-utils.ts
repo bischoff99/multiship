@@ -445,34 +445,63 @@ export class TestDatabaseUtils {
   }
 }
 
-// Time utilities for testing
+// Time utilities for testing with Jest fake timers
 export class TestTimeUtils {
-  private static timeOffset = 0;
-  private static originalNow = Date.now;
-
-  static setTimeOffset(offsetMs: number): void {
-    this.timeOffset = offsetMs;
-  }
-
-  static resetTime(): void {
-    this.timeOffset = 0;
-    Date.now = this.originalNow;
-  }
-
-  static mockDateNow(): void {
-    Date.now = () => this.originalNow() + this.timeOffset;
-  }
-
+  /**
+   * Advance Jest fake timers by specified milliseconds
+   */
   static advanceTime(ms: number): void {
-    this.timeOffset += ms;
+    jest.advanceTimersByTime(ms);
   }
 
+  /**
+   * Run all pending timers
+   */
+  static runAllTimers(): void {
+    jest.runAllTimers();
+  }
+
+  /**
+   * Run only currently pending timers
+   */
+  static runOnlyPendingTimers(): void {
+    jest.runOnlyPendingTimers();
+  }
+
+  /**
+   * Get number of pending timers
+   */
+  static getTimerCount(): number {
+    return jest.getTimerCount();
+  }
+
+  /**
+   * Reset time to current time
+   */
+  static resetTime(): void {
+    jest.setSystemTime(Date.now());
+  }
+
+  /**
+   * Set system time to specific timestamp
+   */
   static setFixedTime(timestamp: number): void {
-    Date.now = () => timestamp;
+    jest.setSystemTime(timestamp);
   }
 
+  /**
+   * Wait for timers to complete (for use with real timers)
+   */
   static async wait(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Advance time and run all timers
+   */
+  static advanceAndRunTimers(ms: number): void {
+    jest.advanceTimersByTime(ms);
+    jest.runAllTimers();
   }
 }
 

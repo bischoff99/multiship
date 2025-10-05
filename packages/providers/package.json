@@ -27,9 +27,13 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:fix": "jest --updateSnapshot --verbose",
+    "test:debug": "jest --verbose --detectOpenHandles --runInBand",
     "test:unit": "jest --testPathPatterns=unit",
     "test:integration": "jest --testPathPatterns=integration",
     "test:performance": "jest --testPathPatterns=performance",
+    "clean": "rm -rf dist coverage .jest-cache",
+    "typecheck": "tsc --noEmit",
     "verify:veeqo": "tsx src/test/verify-veeqo-integration.ts",
     "verify:veeqo:health": "tsx src/test/verify-veeqo-integration.ts --health-only",
     "verify:veeqo:config": "tsx src/test/verify-veeqo-integration.ts --config-only"
