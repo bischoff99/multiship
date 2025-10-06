@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@easypost/api": "^8.2.0",
-    "ioredis": "^5.8.0",
+    "ioredis": "^5.8.1",
     "shippo": "^2.15.0",
     "zod": "^4.1.11"
   },
