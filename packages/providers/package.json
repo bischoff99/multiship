@@ -10,7 +10,7 @@
     "@easypost/api": "^8.2.0",
     "ioredis": "^5.8.0",
     "shippo": "^2.15.0",
-    "zod": "^4.1.11"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
